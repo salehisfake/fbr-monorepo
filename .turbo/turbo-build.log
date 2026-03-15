@@ -1,0 +1,30 @@
+
+> web@0.1.0 build C:\Users\admin\FBR\FBR-WEBSITE-CODE\FBRmonorepo\apps\web
+> next build
+
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\Users\admin\FBR\FBR-WEBSITE-CODE\FBRmonorepo\pnpm-lock.yaml as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * C:\Users\admin\FBR\FBR-WEBSITE-CODE\FBRmonorepo\apps\web\pnpm-lock.yaml
+
+▲ Next.js 16.1.6 (Turbopack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 5.3s
+  Running TypeScript ...
+Failed to compile.
+
+./src/components/graph/DexGraph.tsx:210:5
+Type error: 'nodeRef.current' is possibly 'null'.
+
+[0m [90m 208 |[39m
+ [90m 209 |[39m     [90m// Render each node's shape and label[39m
+[31m[1m>[22m[39m[90m 210 |[39m     nodeRef[33m.[39mcurrent[33m.[39meach([36mfunction[39m(d) {
+ [90m     |[39m     [31m[1m^[22m[39m
+ [90m 211 |[39m       [36mconst[39m el    [33m=[39m d3[33m.[39mselect[33m<[39m[33mSVGGElement[39m[33m,[39m [33mGraphNode[39m[33m>[39m([36mthis[39m [36mas[39m [33mSVGGElement[39m)
+ [90m 212 |[39m       [36mconst[39m style [33m=[39m getNodeStyle(d[33m.[39mtype [36mas[39m any[33m,[39m d[33m.[39mweight[33m,[39m d[33m.[39mlabel)
+ [90m 213 |[39m[0m
+Next.js build worker exited with code: 1 and signal: null
+ ELIFECYCLE  Command failed with exit code 1.

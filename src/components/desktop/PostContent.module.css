@@ -1,0 +1,157 @@
+.postContent {
+  font-family: var(--font-noto-serif);
+  font-size: 14px;
+  line-height: 1.8;
+  color: #3d3d3d;
+}
+
+/* Dividers */
+.postContent hr {
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  margin: 2rem 0;
+}
+
+/* Headings */
+.postContent h1 {
+  font-family: var(--font-mplus);
+  font-size: 28px;
+  font-weight: 700;
+  margin: 1.5rem 0 1rem 0;
+}
+
+.postContent h2 {
+  font-family: var(--font-mplus);
+  font-size: 24px;
+  font-weight: 700;
+  margin: 1.5rem 0 1rem 0;
+}
+
+.postContent h3 {
+  font-family: var(--font-mplus);
+  font-size: 20px;
+  font-weight: 700;
+  margin: 1.25rem 0 0.75rem 0;
+}
+
+/* Paragraphs */
+.postContent p {
+  margin: 0.75rem 0;
+}
+
+/* Links */
+.postContent a {
+  color: #0066cc;
+  text-decoration: none;
+}
+
+.postContent a:hover {
+  text-decoration: underline;
+}
+
+/* Code blocks */
+.postContent pre {
+  background-color: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 1rem;
+  overflow-x: auto;
+  margin: 1rem 0;
+  font-family: 'Courier New', monospace;
+}
+
+.postContent code {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+}
+
+.postContent pre code {
+  background-color: transparent;
+  padding: 0;
+}
+
+/* Inline code */
+.postContent p code,
+.postContent li code {
+  background-color: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+/* Lists */
+.postContent ul,
+.postContent ol {
+  margin: 0.75rem 0;
+  padding-left: 2rem;
+}
+
+.postContent li {
+  margin: 0.25rem 0;
+}
+
+/* Blockquotes */
+.postContent blockquote {
+  border-left: 4px solid #0066cc;
+  padding-left: 1rem;
+  margin-left: 0;
+  margin-right: 0;
+  color: #666;
+  font-style: italic;
+}
+
+/* Tables */
+.postContent table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  border: 1px solid #e0e0e0;
+}
+
+.postContent th {
+  background-color: #f5f5f5;
+  padding: 0.75rem;
+  border: 1px solid #e0e0e0;
+  font-weight: 700;
+  text-align: left;
+}
+
+.postContent td {
+  padding: 0.75rem;
+  border: 1px solid #e0e0e0;
+}
+
+.postContent tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+/* Images */
+.postContent img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin: 1rem 0;
+}
+
+/* Callouts - you can customize these as needed */
+.postContent .callout {
+  border-left: 4px solid #0066cc;
+  background-color: #f0f7ff;
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 4px;
+}
+
+.postContent .callout.warning {
+  border-left-color: #ff9800;
+  background-color: #fff8f0;
+}
+
+.postContent .callout.danger {
+  border-left-color: #f44336;
+  background-color: #fff1f0;
+}
+
+.postContent .callout.success {
+  border-left-color: #4caf50;
+  background-color: #f1f8f1;
+}

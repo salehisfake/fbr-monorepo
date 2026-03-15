@@ -124,8 +124,8 @@ export default function Window({ win, onSnapPreview }: WindowProps) {
             <div style={{
               width:         '100%',
               height:        '100%',
-              background:    COLORS.WHITE,
-              border:        `1px solid ${COLORS.LIGHT}`,
+              background:    'rgba(255,255,255,0.99)',
+              border:        `1px solid ${COLORS.OFFWHITE}`,
               display:       'flex',
               flexDirection: 'column',
               overflow:      'hidden',
@@ -145,7 +145,7 @@ export default function Window({ win, onSnapPreview }: WindowProps) {
                   justifyContent: 'space-between',
                   padding:        '0 12px',
                   height:         '36px',
-                  borderBottom:   `1px solid ${COLORS.LIGHT}`,
+                  borderBottom:   `1px solid ${COLORS.OFFWHITE}`,
                   cursor:         'move',
                   flexShrink:     0,
                   userSelect:     'none',
@@ -155,7 +155,6 @@ export default function Window({ win, onSnapPreview }: WindowProps) {
                   fontSize:      '11px',
                   fontFamily:    'var(--font-mplus)',
                   fontWeight:    '700',
-                  letterSpacing: '0.05em',
                   color:         COLORS.BLACK,
                 }}>
                   {win.title}

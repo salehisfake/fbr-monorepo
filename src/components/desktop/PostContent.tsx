@@ -2,6 +2,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import styles from './PostContent.module.css'
 
 interface PostContentProps {
   slug: string
@@ -48,6 +49,16 @@ export default function PostContent({ slug }: PostContentProps) {
   return (
     <div style={{ padding: '24px 32px', overflowY: 'auto', height: '100%', boxSizing: 'border-box' }}>
       <p style={{
+        fontSize: '48px',
+        color: '#3d3d3d',
+        margin: '0 0 24px 0',
+        fontFamily: 'var(--font-mplus)',
+        fontWeight: '700',
+        letterSpacing: '-0.02em',
+      }}>
+        {post.title}
+      </p>
+      <p style={{
         fontSize: '11px',
         color: '#888',
         margin: '0 0 24px 0',
@@ -61,8 +72,8 @@ export default function PostContent({ slug }: PostContentProps) {
       </p>
 
       <div
+        className={styles.postContent}
         dangerouslySetInnerHTML={{ __html: post.contentHtml }}
-        style={{ fontFamily: 'var(--font-mplus)', fontSize: '13px', lineHeight: '1.7', color: '#3d3d3d' }}
       />
     </div>
   )

@@ -237,7 +237,7 @@ const ticked = useCallback(() => {
   return (
     <svg
       ref={svgRef}
-      style={{ width: '100%', height: '100%', display: 'block', background: COLORS.WHITE }}
+      style={{ width: '100%', height: '100%', display: 'block', background: COLORS.OFFWHITE }}
     />
   )
 }

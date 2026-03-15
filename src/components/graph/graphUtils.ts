@@ -23,7 +23,7 @@ export interface NodeStyle {
 
 
 export function getNodeStyle(type: NodeType, weight: number, label?: string): NodeStyle {
-  const weightBoost = Math.min(weight * 1.1, 24)
+  const weightBoost = weight * 0.4
   const isParentTag = type === 'tag' && !!getTagConfig(label ?? '')
 
   switch (type) {

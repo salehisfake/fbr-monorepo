@@ -5,6 +5,7 @@ export const COLORS = {
   MID:        '#6c6c6c',
   MIDLIGHT:  '#b1b1b1' ,
   LIGHT:      '#cccccc',
+  OFFWHITE: '#f8f8f8',
   WHITE:      '#ffffff',
 }
 
