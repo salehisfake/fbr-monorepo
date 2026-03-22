@@ -1,10 +1,7 @@
 // apps/web/src/components/graph/graphUtils.ts
-
 import { COLORS } from './graphConstants'
 import { getTagConfig } from '@/config/graph'
-
 export type NodeType = 'entry' | 'tag'
-
 export interface NodeStyle {
   size:        number
   shape:       'circle' | 'rect'
@@ -20,12 +17,9 @@ export interface NodeStyle {
   iconMode:    'shape' | 'image'
   iconPath?:   string
 }
-
-
 export function getNodeStyle(type: NodeType, weight: number, label?: string): NodeStyle {
-  const weightBoost = weight * 0.4
+  const weightBoost = weight * 1
   const isParentTag = type === 'tag' && !!getTagConfig(label ?? '')
-
   switch (type) {
     case 'tag':
       return {
@@ -58,7 +52,6 @@ export function getNodeStyle(type: NodeType, weight: number, label?: string): No
       }
   }
 }
-
 export function appendShape(
   el: d3.Selection<SVGGElement, any, any, any>,
   style: NodeStyle
@@ -72,7 +65,6 @@ export function appendShape(
       .attr('y', -style.size / 2)
     return
   }
-
   const s = style.size
   switch (style.shape) {
     case 'circle':

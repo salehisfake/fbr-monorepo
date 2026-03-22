@@ -1,6 +1,5 @@
 // apps/web/src/components/desktop/useWindowStore.ts
 import { create } from 'zustand'
-import type { SnapZone } from './snapUtils'
 
 export interface WindowItem {
   id:          string
@@ -12,11 +11,6 @@ export interface WindowItem {
   width:       number
   height:      number
   zIndex:      number
-  snapZone:    SnapZone
-  prevX:       number
-  prevY:       number
-  prevWidth:   number
-  prevHeight:  number
   originX:     number
   originY:     number
 }
@@ -30,18 +24,32 @@ interface WindowStore {
   updateWindow: (id: string, updates: Partial<WindowItem>) => void
 }
 
-const PAD = 10
+const PAD = 1
 
-function getRightHalfDimensions() {
-  const w = typeof window !== 'undefined' ? window.innerWidth  : 1200
-  const h = typeof window !== 'undefined' ? window.innerHeight : 800
-  const innerW = w - PAD * 2
-  const innerH = h - PAD * 2
+function getNewWindowPosition(existingWindows: WindowItem[], viewportHeight: number) {
+  const w = typeof window !== 'undefined' ? window.innerWidth : 1200
+  const windowWidth = (w - PAD * 2) / 2
+  const windowHeight = (window.innerHeight - PAD * 2) // Default height for new windows
+
+  if (existingWindows.length === 0) {
+    return {
+      x: PAD,
+      y: Math.max(PAD, (viewportHeight - windowHeight) / 2),
+      width: windowWidth,
+      height: windowHeight,
+    }
+  }
+
+  // Find the rightmost window edge
+  const rightmostEdge = Math.max(
+    ...existingWindows.map(w => w.x + w.width)
+  )
+
   return {
-    x:      PAD + innerW / 2,
-    y:      PAD,
-    width:  innerW / 2,
-    height: innerH,
+    x: rightmostEdge + 20,
+    y: Math.max(PAD, (viewportHeight - windowHeight) / 2),
+    width: windowWidth,
+    height: windowHeight,
   }
 }
 
@@ -61,7 +69,8 @@ export const useWindowStore = create<WindowStore>((set, get) => ({
 
     const nextZ = topZIndex + 1
     const id    = `${slug}-${Date.now()}`
-    const dims  = getRightHalfDimensions()
+    const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 800
+    const dims  = getNewWindowPosition(windows, viewportHeight)
 
     set((s) => ({
       windows: [...s.windows, {
@@ -71,11 +80,6 @@ export const useWindowStore = create<WindowStore>((set, get) => ({
         title,
         ...dims,
         zIndex:     nextZ,
-        snapZone:   'right',
-        prevX:      dims.x,
-        prevY:      dims.y,
-        prevWidth:  dims.width,
-        prevHeight: dims.height,
         originX,
         originY,
       }],

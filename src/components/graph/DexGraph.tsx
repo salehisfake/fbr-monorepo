@@ -119,7 +119,6 @@ const ticked = useCallback(() => {
         if (rafRef.current) cancelAnimationFrame(rafRef.current)
         rafRef.current = requestAnimationFrame(() => {
           nodeRef.current?.attr('transform', (d: any) => getNodeTransform(d, k))
-          simulationRef.current?.alpha(0.3).restart()
           rafRef.current = null
         })
 
@@ -221,7 +220,7 @@ const ticked = useCallback(() => {
         .style('fill',      style.textColor)
         .style('font-size', `${style.fontSize}px`)
         .style('font-family', 'var(--font-mplus), sans-serif')
-        .style('font-weight', d.type === 'entry' ? 400 : 500)
+        .style('font-weight', d.type === 'entry' ? 500 : 600)
         .style('opacity',   d.type === 'entry' ? 0 : 1)
         .attr('class',      style.labelClass)
         .attr('pointer-events', 'none')

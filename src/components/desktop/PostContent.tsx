@@ -58,18 +58,22 @@ export default function PostContent({ slug }: PostContentProps) {
       }}>
         {post.title}
       </p>
-      <p style={{
-        fontSize: '11px',
-        color: '#888',
-        margin: '0 0 24px 0',
-        fontFamily: 'var(--font-mplus)',
-        letterSpacing: '0.05em',
-      }}>
-        {new Date(post.pubDate).toLocaleDateString('en-GB', {
-          day: 'numeric', month: 'long', year: 'numeric'
-        })}
-        {post.tags.length > 0 && ` · ${post.tags.join(', ')}`}
-      </p>
+      <div className={styles.metadata}>
+        {post.tags.length > 0 && (
+          <div className={styles.tagsContainer}>
+            {post.tags.map((tag) => (
+              <button key={tag} className={styles.tag}>
+                {tag}
+              </button>
+            ))}
+          </div>
+        )}
+        <p className={styles.date}>
+          {new Date(post.pubDate).toLocaleDateString('en-GB', {
+            day: 'numeric', month: 'long', year: 'numeric'
+          })}
+        </p>
+      </div>
 
       <div
         className={styles.postContent}

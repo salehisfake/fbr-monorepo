@@ -55,6 +55,290 @@
       "weight": 0
     },
     {
+      "id": "20250400-kickstarter-dial-marketing",
+      "label": "Kickstarter Dial Marketing",
+      "type": "entry",
+      "description": "- Core Narrative     Establish FBR ROM as a technology company operating across two mediums:     1.  Consumer Hardware     2.",
+      "url": "/posts/20250400-kickstarter-dial-marketing",
+      "weight": 1
+    },
+    {
+      "id": "tag-planned",
+      "label": "Planned",
+      "type": "tag",
+      "weight": 1
+    },
+    {
+      "id": "20251009-formlabs-strategy-brief-internal",
+      "label": "FBR ROM × Formlabs — Collaboration, Production & Media Strategy",
+      "type": "entry",
+      "description": "#formlabs  --- This document captures the discussion between Sebastian and Mio on the integration of Formlabs into FBR ROM’s production and media systems.    It links the Dial, G-String, and M Dot projects due to the nature of manufacturing needs The goal was to identify mutual value, define our differentiation from Formlabs’ existing media, and create a solid pitch to send to Formlabs  --- Our main goal is to send Formlabs an offer that is too good for them.",
+      "url": "/posts/20251009-formlabs-strategy-brief-internal",
+      "weight": 1
+    },
+    {
+      "id": "tag-formlabs",
+      "label": "formlabs",
+      "type": "tag",
+      "weight": 1
+    },
+    {
+      "id": "20251016-media-structure-amendment",
+      "label": "Media Structure Amendment",
+      "type": "entry",
+      "description": "#mediaStructure #systems   We've created a categorized grouping system for the media structure.   What this means is we will be creating packages arounds subjects that need  to be documented to make marketing content out of.",
+      "url": "/posts/20251016-media-structure-amendment",
+      "weight": 2
+    },
+    {
+      "id": "tag-mediastructure",
+      "label": "mediaStructure",
+      "type": "tag",
+      "weight": 2
+    },
+    {
+      "id": "tag-systems",
+      "label": "systems",
+      "type": "tag",
+      "weight": 1
+    },
+    {
+      "id": "20251027-long-form-inspiration",
+      "label": "Long Form Inspiration",
+      "type": "entry",
+      "description": "Long for video inspiration list: - Steve Mould \t- Example: NASA tested my chain theory in space - YouTube - AP mastering \t- https://www. youtube.",
+      "url": "/posts/20251027-long-form-inspiration",
+      "weight": 0
+    },
+    {
+      "id": "20260202-fbr-app-ui-design-process",
+      "label": "FBR App UI Design Process",
+      "type": "entry",
+      "description": "Greetings, this page will take you through the design process of the FBR App UI.  For more personal insights, refer to individual journal entries.",
+      "url": "/posts/20260202-fbr-app-ui-design-process",
+      "weight": 3
+    },
+    {
+      "id": "tag-website",
+      "label": "website",
+      "type": "tag",
+      "weight": 2
+    },
+    {
+      "id": "tag-ui",
+      "label": "UI",
+      "type": "tag",
+      "weight": 4
+    },
+    {
+      "id": "tag-fbrapp",
+      "label": "fbrapp",
+      "type": "tag",
+      "weight": 9
+    },
+    {
+      "id": "20260212-fbr-app-areas-of-ui-design-consideration",
+      "label": "FBR App Areas Of UI Design Consideration",
+      "type": "entry",
+      "description": "The FBR app is an interactive datadex.   Meaning it works like a pokedex for coffee, forming its large network/interactive library from user-generated data.",
+      "url": "/posts/20260212-fbr-app-areas-of-ui-design-consideration",
+      "weight": 2
+    },
+    {
+      "id": "20260212-fbr-app-components-masterpage",
+      "label": "FBR App Components Masterpage",
+      "type": "entry",
+      "description": "Since components appear all over diff.  sections and pages, this  serves as a general guideline or an index to almost all possible app components.",
+      "url": "/posts/20260212-fbr-app-components-masterpage",
+      "weight": 2
+    },
+    {
+      "id": "20260212-fbr-app-overview-of-pages",
+      "label": "FBR App Overview Of Pages",
+      "type": "entry",
+      "description": "What the pages are and any requirements/ideas so far Where the feed and search page is.  The homepage is designed for the purpose of user discovery and exploration.",
+      "url": "/posts/20260212-fbr-app-overview-of-pages",
+      "weight": 2
+    },
+    {
+      "id": "20260212-fbr-app-screen-responsiveness",
+      "label": "FBR App Screen Responsiveness",
+      "type": "entry",
+      "description": "The FBR app will be used across desktop, tablet, and phone screens so it is important that our interface responds to changes in screen sizes.  We want to ensure that no medium is superior to another; user experience should be of the same quality no matter what device they use.",
+      "url": "/posts/20260212-fbr-app-screen-responsiveness",
+      "weight": 2
+    },
+    {
+      "id": "tag-uiux",
+      "label": "UI/UX",
+      "type": "tag",
+      "weight": 2
+    },
+    {
+      "id": "20260216-website-design-fbr-dex-v-v020-brief",
+      "label": "Website Design FBR Dex V V0.2.0 Brief",
+      "type": "entry",
+      "description": "> This is a project.  The brief should be written in Obsidian first, then added to Linear.",
+      "url": "/posts/20260216-website-design-fbr-dex-v-v020-brief",
+      "weight": 0
+    },
+    {
+      "id": "20260223-caption-tone-dissection-and-examples",
+      "label": "Caption Tone Dissection And Examples",
+      "type": "entry",
+      "description": "#mediaStructure #captions The FBR tone is something we are trying to establish as we're releasing more media, however for anyone except Sebastian, it could be hard to come up with a caption that sounds FBR.   We also are going to have a Chat bot at some point which can be used to generate captions, so the more documentation we have on the tone and approach the better the AI will do with writing them.",
+      "url": "/posts/20260223-caption-tone-dissection-and-examples",
+      "weight": 2
+    },
+    {
+      "id": "tag-captions",
+      "label": "captions",
+      "type": "tag",
+      "weight": 1
+    },
+    {
+      "id": "20260226-fbr-app-graphic-design-details",
+      "label": "FBR App Graphic Design Details",
+      "type": "entry",
+      "description": "> For Sebastian, please specify the custom graph visualisations you'd like to be developed Brew Data - Waveform - Discs - Spirograph Profile Visualisations - Us",
+      "url": "/posts/20260226-fbr-app-graphic-design-details",
+      "weight": 4
+    },
+    {
+      "id": "tag-visualisations",
+      "label": "visualisations",
+      "type": "tag",
+      "weight": 1
+    },
+    {
+      "id": "tag-data",
+      "label": "data",
+      "type": "tag",
+      "weight": 1
+    },
+    {
+      "id": "20260306-fbr-dex-v-020-specifications",
+      "label": "FBR DEX V 0.2.0 Specifications",
+      "type": "entry",
+      "description": "- Node Isolation Toggle  - Boring Mode (terminal view) - Share Function - Reader Load Assist  \t- Animation \t- Speed Optimisation - Favicon - Background Depth Animation or 3D dust crumbs for depth simulation (PS2 Vibes) - Password Protected pages for public Docs and Decks  - email and security code only no passwords.",
+      "url": "/posts/20260306-fbr-dex-v-020-specifications",
+      "weight": 1
+    },
+    {
+      "id": "20260306-shoji-window-management-dex",
+      "label": "Shoji Window Management DEX",
+      "type": "entry",
+      "description": "FBR DEX will be taking a novel approach to web where we are using applets and window management to display and interact with the site.   There will be single page application pagination where URL changes with object focus but page remains desktop with internally rendered objects/pages.",
+      "url": "/posts/20260306-shoji-window-management-dex",
+      "weight": 1
+    },
+    {
+      "id": "tag-fbrdex",
+      "label": "fbrDex",
+      "type": "tag",
+      "weight": 12
+    },
+    {
+      "id": "20260310-website-scope",
+      "label": "Website Scope",
+      "type": "entry",
+      "description": "A SPA is a web application that loads only one HTML file and dynamically updates content using javascript without full page reloads.   Done correctly, this gives a fast, app-like interactive experience.",
+      "url": "/posts/20260310-website-scope",
+      "weight": 3
+    },
+    {
+      "id": "tag-stack",
+      "label": "Stack",
+      "type": "tag",
+      "weight": 1
+    },
+    {
+      "id": "tag-seo",
+      "label": "SEO",
+      "type": "tag",
+      "weight": 1
+    },
+    {
+      "id": "20260312-monorepo-dependencies",
+      "label": "Monorepo Dependencies",
+      "type": "entry",
+      "description": "- PNPM \t- Alterative package manager better at managing packages for monorepos.  If the app and the site use the same packages, they only need downloading once \t\t- Use  into root monorepo to run everything on a localhost - Turbo \t- A high-performance build system for JavaScript/TypeScript monorepos.",
+      "url": "/posts/20260312-monorepo-dependencies",
+      "weight": 1
+    },
+    {
+      "id": "20260312-nextjs-v-gatsby-v-astro",
+      "label": "Next.Js V Gatsby V Astro",
+      "type": "entry",
+      "description": "Ok, so actually I'm questioning the use of Astro, it's just not built for what we're doing.  The useful aspects of it have alternatives in Gatsby and Next.",
+      "url": "/posts/20260312-nextjs-v-gatsby-v-astro",
+      "weight": 2
+    },
+    {
+      "id": "20260312-proposed-monorepo-folder-structure",
+      "label": "Proposed Monorepo Folder Structure",
+      "type": "entry",
+      "description": "> Full monorepo structure for the Next. js + Expo + tRPC + Supabase platform.",
+      "url": "/posts/20260312-proposed-monorepo-folder-structure",
+      "weight": 2
+    },
+    {
+      "id": "20260312-route-files-in-next",
+      "label": "Route Files In Next",
+      "type": "entry",
+      "description": "In our site, we've got some route. ts files in   is Next.",
+      "url": "/posts/20260312-route-files-in-next",
+      "weight": 1
+    },
+    {
+      "id": "20260312-tag-pages",
+      "label": "Tag Pages",
+      "type": "entry",
+      "description": "Note to self:  Right now the tag pages () don't exist yet.  Tags appear in frontmatter and will be visible on post pages, but there's no dedicated page at  listing all posts with that tag.",
+      "url": "/posts/20260312-tag-pages",
+      "weight": 1
+    },
+    {
+      "id": "20260312-web-folder-structure",
+      "label": "Web Folder Structure",
+      "type": "entry",
+      "description": "Next. js is the web framework.",
+      "url": "/posts/20260312-web-folder-structure",
+      "weight": 1
+    },
+    {
+      "id": "20260312-web-platform-migration--architecture-reference",
+      "label": "Web Platform Migration & Architecture Reference",
+      "type": "entry",
+      "description": "Astro → Next. js · Full Stack Platform Version 1.",
+      "url": "/posts/20260312-web-platform-migration--architecture-reference",
+      "weight": 2
+    },
+    {
+      "id": "20260313-node-click-data-flow",
+      "label": "Node Click Data Flow",
+      "type": "entry",
+      "description": "",
+      "url": "/posts/20260313-node-click-data-flow",
+      "weight": 1
+    },
+    {
+      "id": "20260315-url-behaviour",
+      "label": "URL Behaviour",
+      "type": "entry",
+      "description": "Each entry is URL-addressable.  Clicking an entry updates the URL to reflect it.",
+      "url": "/posts/20260315-url-behaviour",
+      "weight": 1
+    },
+    {
+      "id": "20260318-dealing-with-input-conflicts",
+      "label": "Dealing With Input Conflicts",
+      "type": "entry",
+      "description": "We have 3 competing elements that share gestures:  - The D3 graph (pan + zoom) - The window content (scroll within) - The window manager (horizontal pan) \t- This is the horizontal strip that windows live on These all needs intuitive separation with the priority being mobile touch-based users.   The core model is: scroll is always local, drag is always global (within window content).",
+      "url": "/posts/20260318-dealing-with-input-conflicts",
+      "weight": 1
+    },
+    {
       "id": "amyos",
       "label": "AmyOs [VIC]",
       "type": "entry",
@@ -196,6 +480,201 @@
     {
       "source": "tag-bookings",
       "target": "tag-cuts-n-cups",
+      "type": "tag"
+    },
+    {
+      "source": "20250400-kickstarter-dial-marketing",
+      "target": "tag-planned",
+      "type": "tag"
+    },
+    {
+      "source": "20251009-formlabs-strategy-brief-internal",
+      "target": "tag-formlabs",
+      "type": "tag"
+    },
+    {
+      "source": "20251016-media-structure-amendment",
+      "target": "tag-mediastructure",
+      "type": "tag"
+    },
+    {
+      "source": "20251016-media-structure-amendment",
+      "target": "tag-systems",
+      "type": "tag"
+    },
+    {
+      "source": "20260202-fbr-app-ui-design-process",
+      "target": "tag-website",
+      "type": "tag"
+    },
+    {
+      "source": "20260202-fbr-app-ui-design-process",
+      "target": "tag-ui",
+      "type": "tag"
+    },
+    {
+      "source": "20260202-fbr-app-ui-design-process",
+      "target": "tag-fbrapp",
+      "type": "tag"
+    },
+    {
+      "source": "20260212-fbr-app-areas-of-ui-design-consideration",
+      "target": "tag-fbrapp",
+      "type": "tag"
+    },
+    {
+      "source": "20260212-fbr-app-areas-of-ui-design-consideration",
+      "target": "tag-ui",
+      "type": "tag"
+    },
+    {
+      "source": "20260212-fbr-app-components-masterpage",
+      "target": "tag-fbrapp",
+      "type": "tag"
+    },
+    {
+      "source": "20260212-fbr-app-components-masterpage",
+      "target": "tag-ui",
+      "type": "tag"
+    },
+    {
+      "source": "20260212-fbr-app-overview-of-pages",
+      "target": "tag-fbrapp",
+      "type": "tag"
+    },
+    {
+      "source": "20260212-fbr-app-overview-of-pages",
+      "target": "tag-ui",
+      "type": "tag"
+    },
+    {
+      "source": "20260212-fbr-app-screen-responsiveness",
+      "target": "tag-fbrapp",
+      "type": "tag"
+    },
+    {
+      "source": "20260212-fbr-app-screen-responsiveness",
+      "target": "tag-uiux",
+      "type": "tag"
+    },
+    {
+      "source": "20260223-caption-tone-dissection-and-examples",
+      "target": "tag-mediastructure",
+      "type": "tag"
+    },
+    {
+      "source": "20260223-caption-tone-dissection-and-examples",
+      "target": "tag-captions",
+      "type": "tag"
+    },
+    {
+      "source": "20260226-fbr-app-graphic-design-details",
+      "target": "tag-fbrapp",
+      "type": "tag"
+    },
+    {
+      "source": "20260226-fbr-app-graphic-design-details",
+      "target": "tag-uiux",
+      "type": "tag"
+    },
+    {
+      "source": "20260226-fbr-app-graphic-design-details",
+      "target": "tag-visualisations",
+      "type": "tag"
+    },
+    {
+      "source": "20260226-fbr-app-graphic-design-details",
+      "target": "tag-data",
+      "type": "tag"
+    },
+    {
+      "source": "20260306-fbr-dex-v-020-specifications",
+      "target": "tag-website",
+      "type": "tag"
+    },
+    {
+      "source": "20260306-shoji-window-management-dex",
+      "target": "tag-fbrdex",
+      "type": "tag"
+    },
+    {
+      "source": "20260310-website-scope",
+      "target": "tag-fbrdex",
+      "type": "tag"
+    },
+    {
+      "source": "20260310-website-scope",
+      "target": "tag-stack",
+      "type": "tag"
+    },
+    {
+      "source": "20260310-website-scope",
+      "target": "tag-seo",
+      "type": "tag"
+    },
+    {
+      "source": "20260312-monorepo-dependencies",
+      "target": "tag-fbrdex",
+      "type": "tag"
+    },
+    {
+      "source": "20260312-nextjs-v-gatsby-v-astro",
+      "target": "tag-fbrapp",
+      "type": "tag"
+    },
+    {
+      "source": "20260312-nextjs-v-gatsby-v-astro",
+      "target": "tag-fbrdex",
+      "type": "tag"
+    },
+    {
+      "source": "20260312-proposed-monorepo-folder-structure",
+      "target": "tag-fbrapp",
+      "type": "tag"
+    },
+    {
+      "source": "20260312-proposed-monorepo-folder-structure",
+      "target": "tag-fbrdex",
+      "type": "tag"
+    },
+    {
+      "source": "20260312-route-files-in-next",
+      "target": "tag-fbrdex",
+      "type": "tag"
+    },
+    {
+      "source": "20260312-tag-pages",
+      "target": "tag-fbrdex",
+      "type": "tag"
+    },
+    {
+      "source": "20260312-web-folder-structure",
+      "target": "tag-fbrdex",
+      "type": "tag"
+    },
+    {
+      "source": "20260312-web-platform-migration--architecture-reference",
+      "target": "tag-fbrapp",
+      "type": "tag"
+    },
+    {
+      "source": "20260312-web-platform-migration--architecture-reference",
+      "target": "tag-fbrdex",
+      "type": "tag"
+    },
+    {
+      "source": "20260313-node-click-data-flow",
+      "target": "tag-fbrdex",
+      "type": "tag"
+    },
+    {
+      "source": "20260315-url-behaviour",
+      "target": "tag-fbrdex",
+      "type": "tag"
+    },
+    {
+      "source": "20260318-dealing-with-input-conflicts",
+      "target": "tag-fbrdex",
       "type": "tag"
     },
     {

@@ -31,12 +31,6 @@ function slug(str: string): string {
   return str.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w-]/g, '')
 }
 
-function stripCode(markdown: string): string {
-  return markdown
-    .replace(/```[\s\S]*?```/g, '')
-    .replace(/`[^`]*`/g, '')
-}
-
 function hasEdge(edges: GraphEdge[], a: string, b: string): boolean {
   return edges.some(
     e => (e.source === a && e.target === b) ||
@@ -48,7 +42,7 @@ export function buildGraphData(posts: Post[]): GraphData {
   const nodes: GraphNode[] = []
   const edges: GraphEdge[] = []
   const addedNodes = new Set<string>()
-  const entryIds = new Set<string>()
+  const entryIds   = new Set<string>()
 
   function addNode(node: Omit<GraphNode, 'weight'>) {
     if (!addedNodes.has(node.id)) {
@@ -63,7 +57,10 @@ export function buildGraphData(posts: Post[]): GraphData {
     }
   }
 
-  // ── 1. Parent tag nodes and subtag → parent edges ─────────────────────────
+  // ── 1. Parent tag nodes and subtag → parent edges ──────────────────────
+  //
+  // Seeded from TAG_CONFIG so these hub nodes always exist in the graph
+  // regardless of whether any posts have been published for them yet.
 
   for (const [parentName, config] of Object.entries(TAG_CONFIG)) {
     const parentId = `tag-${slug(parentName)}`
@@ -73,27 +70,18 @@ export function buildGraphData(posts: Post[]): GraphData {
       label: parentName,
       type: 'tag',
       ...(config.icon        ? { icon: config.icon }               : {}),
-      ...(config.description ? { description: config.description } : {})
+      ...(config.description ? { description: config.description } : {}),
     })
 
     for (const subtag of config.subtags ?? []) {
       const subtagId = `tag-${slug(subtag)}`
 
-      addNode({
-        id: subtagId,
-        label: subtag,
-        type: 'tag'
-      })
-
-      addEdge({
-        source: subtagId,
-        target: parentId,
-        type: 'tag'
-      })
+      addNode({ id: subtagId, label: subtag, type: 'tag' })
+      addEdge({ source: subtagId, target: parentId, type: 'tag' })
     }
   }
 
-  // ── 2. Entry nodes ────────────────────────────────────────────────────────
+  // ── 2. Entry nodes ─────────────────────────────────────────────────────
 
   for (const post of posts) {
     const entryId = slug(post.slug)
@@ -109,17 +97,20 @@ export function buildGraphData(posts: Post[]): GraphData {
       label: post.frontmatter.title,
       type: 'entry',
       description: post.frontmatter.description,
-      url: `/posts/${entryId}`
+      url: `/posts/${entryId}`,
     })
+
+    // ── 3. Tag edges ──────────────────────────────────────────────────────
+    //
+    // `post.frontmatter.tags` already includes both explicit frontmatter tags
+    // AND inline #hashtags extracted by content.ts, so no separate step is
+    // needed here for inline tags — they are treated identically.
 
     const tags = post.frontmatter.tags ?? []
 
-    // Parent tags already implied by subtags — skip direct connection to these
-    const impliedParents = new Set(
-      tags.flatMap(tag => getParentTags(tag))
-    )
-
-    // ── 3. Tag edges ──────────────────────────────────────────────────────────
+    // Parent tags already implied by subtags — skip the direct entry → parent
+    // edge so the subtag → parent edge alone carries the relationship.
+    const impliedParents = new Set(tags.flatMap(tag => getParentTags(tag)))
 
     for (const tag of tags) {
       const tagId = `tag-${slug(tag)}`
@@ -130,33 +121,30 @@ export function buildGraphData(posts: Post[]): GraphData {
         label: tag,
         type: 'tag',
         ...(config?.icon        ? { icon: config.icon }               : {}),
-        ...(config?.description ? { description: config.description } : {})
+        ...(config?.description ? { description: config.description } : {}),
       })
 
+      // Skip redundant direct edge when the tag is already a known parent
       if (impliedParents.has(tag)) continue
 
       addEdge({ source: entryId, target: tagId, type: 'tag' })
     }
 
-    // ── 4. Inline hashtags ────────────────────────────────────────────────────
+    // ── 4. Connection (link) edges ─────────────────────────────────────────
+    //
+    // `post.frontmatter.connections` is the single source of truth for internal
+    // links. content.ts merges both explicit frontmatter connections AND links
+    // discovered by parsing the markdown body, so we don't need to regex the
+    // raw content here.
 
-    const cleanContent = stripCode(post.content)
-
-    for (const match of cleanContent.matchAll(/#([A-Za-z0-9_-]+)/g)) {
-      const tagId = `tag-${slug(match[1])}`
-      addNode({ id: tagId, label: match[1], type: 'tag' })
-      addEdge({ source: entryId, target: tagId, type: 'tag' })
-    }
-
-    // ── 5. Internal links ─────────────────────────────────────────────────────
-
-    for (const match of cleanContent.matchAll(/(?<!!)\[.+?\]\((?!http)(.+?)\)/g)) {
-      const target = slug(match[1].replace(/\.md$/, ''))
+    for (const connection of post.frontmatter.connections ?? []) {
+      const target = slug(connection)
+      // Dangling edges (target post doesn't exist) are filtered in step 5.
       edges.push({ source: entryId, target, type: 'link' })
     }
   }
 
-  // ── 6. Remove dangling link edges ─────────────────────────────────────────
+  // ── 5. Remove dangling link edges ─────────────────────────────────────
 
   const validEdges = edges.filter(edge => {
     if (edge.type !== 'link') return true
@@ -165,29 +153,29 @@ export function buildGraphData(posts: Post[]): GraphData {
     return false
   })
 
-  // ── 7. Calculate weights ──────────────────────────────────────────────────
+  // ── 6. Calculate weights ──────────────────────────────────────────────
 
-
-    // First pass — direct connections only
-    for (const node of nodes) {
+  // First pass — direct connections only
+  for (const node of nodes) {
     node.weight = validEdges.filter(
-        e => e.source === node.id || e.target === node.id
+      e => e.source === node.id || e.target === node.id
     ).length
-    }
+  }
 
-    // Second pass — parent tags inherit the sum of their subtags' weights
-    for (const [parentName, config] of Object.entries(TAG_CONFIG)) {
-    const parentId = `tag-${slug(parentName)}`
+  // Second pass — parent tag nodes inherit the sum of their subtags' weights
+  // so they stay visually prominent even if no posts tag them directly.
+  for (const [parentName, config] of Object.entries(TAG_CONFIG)) {
+    const parentId   = `tag-${slug(parentName)}`
     const parentNode = nodes.find(n => n.id === parentId)
     if (!parentNode) continue
 
     const inheritedWeight = (config.subtags ?? []).reduce((sum, subtag) => {
-        const subtagNode = nodes.find(n => n.id === `tag-${slug(subtag)}`)
-        return sum + (subtagNode?.weight ?? 0)
+      const subtagNode = nodes.find(n => n.id === `tag-${slug(subtag)}`)
+      return sum + (subtagNode?.weight ?? 0)
     }, 0)
 
     parentNode.weight = Math.max(parentNode.weight, inheritedWeight)
-    }
+  }
 
   return { nodes, edges: validEdges }
 }

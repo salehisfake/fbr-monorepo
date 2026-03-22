@@ -26,7 +26,7 @@ export function useGraphSimulation({ nodes, edges, width, height, onTick }: Prop
           .distance(60)
           .strength(0.5)
       )
-      .force('charge', d3.forceManyBody().strength(-300))
+       .force('charge', d3.forceManyBody().strength(-300).distanceMax(400))
       .force('collide',
         d3.forceCollide<GraphNode>()
           .radius((d) => COLLISION_RADIUS_MAP[d.type] ?? COLLISION_RADIUS_MAP.default)
