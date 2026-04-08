@@ -1,7 +1,6 @@
 // apps/web/src/components/graph/graphUtils.ts
 
 import { COLORS } from './graphConstants'
-import { getTagConfig } from '@/config/graph'
 
 export type NodeType = 'entry' | 'tag'
 
@@ -21,38 +20,45 @@ export interface NodeStyle {
   iconPath?:   string
 }
 
+/**
+ * Returns the visual half-size of a node in SVG units.
+ * Uses a sqrt scale so weight differences are visible without extreme
+ * size variance — accumulated weights can reach 50+.
+ */
+export function getNodeSize(weight: number): number {
+  return 4 + Math.sqrt(weight) * 2.5
+}
 
-export function getNodeStyle(type: NodeType, weight: number, label?: string): NodeStyle {
-  const weightBoost = weight * 0.4
-  const isParentTag = type === 'tag' && !!getTagConfig(label ?? '')
+export function getNodeStyle(type: NodeType, weight: number): NodeStyle {
+  const size = getNodeSize(weight)
 
   switch (type) {
     case 'tag':
       return {
-        size:        8 + weightBoost,
+        size,
         shape:       'rect',
-        fill:        isParentTag ? COLORS.BLACK : COLORS.MID,
-        stroke:      isParentTag ? COLORS.BLACK : COLORS.MID,
+        fill:        COLORS.BLACK,
+        stroke:      COLORS.BLACK,
         strokeWidth: 0,
         fontSize:    9,
-        textColor:   isParentTag ? COLORS.BLACK : COLORS.MID,
+        textColor:   COLORS.BLACK,
         textX:       0,
-        textY:       (8 + weightBoost) / 2 + 12,
+        textY:       size / 2 + 12,
         labelClass:  'tagLabel',
         iconMode:    'shape',
       }
     case 'entry':
     default:
       return {
-        size:        8,
+        size,
         shape:       'rect',
-        fill:        COLORS.MIDLIGHT,
-        stroke:      COLORS.MID,
+        fill:        COLORS.BLACK,
+        stroke:      COLORS.BLACK,
         strokeWidth: 0,
         fontSize:    8,
-        textColor:   COLORS.MID,
+        textColor:   COLORS.BLACK,
         textX:       0,
-        textY:       16,
+        textY:       size / 2 + 12,
         labelClass:  'entryLabel',
         iconMode:    'shape',
       }
@@ -65,6 +71,7 @@ export function appendShape(
 ) {
   if (style.iconMode === 'image' && style.iconPath) {
     el.append('image')
+      .attr('class', 'nodeIcon')
       .attr('href', style.iconPath)
       .attr('width',  style.size)
       .attr('height', style.size)
@@ -77,6 +84,7 @@ export function appendShape(
   switch (style.shape) {
     case 'circle':
       el.append('circle')
+        .attr('class', 'nodeIcon')
         .attr('r', s / 2)
         .attr('fill',         style.fill)
         .attr('stroke',       style.stroke)
@@ -85,6 +93,7 @@ export function appendShape(
       break
     case 'rect':
       el.append('rect')
+        .attr('class', 'nodeIcon')
         .attr('width',  s)
         .attr('height', s)
         .attr('x', -s / 2)

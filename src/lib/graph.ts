@@ -1,19 +1,20 @@
 // apps/web/src/lib/graph.ts
 
-import { TAG_CONFIG, getParentTags, getTagConfig } from '../config/graph'
 import type { Post } from '@/types'
 
-export type NodeType = 'entry' | 'tag' | 'hashtag'
-export type EdgeType = 'tag' | 'hashtag' | 'link'
+export type NodeType = 'entry' | 'tag'
+export type EdgeType = 'tag' | 'link'
 
 export interface GraphNode {
   id: string
   label: string
   type: NodeType
   description?: string
-  icon?: string
   url?: string
   weight: number
+  // When set, overrides the calculated connection-based weight for this node.
+  // Useful for pinning tag nodes at a fixed visual size regardless of connections.
+  fixedWeight?: number
 }
 
 export interface GraphEdge {
@@ -63,37 +64,7 @@ export function buildGraphData(posts: Post[]): GraphData {
     }
   }
 
-  // ── 1. Parent tag nodes and subtag → parent edges ─────────────────────────
-
-  for (const [parentName, config] of Object.entries(TAG_CONFIG)) {
-    const parentId = `tag-${slug(parentName)}`
-
-    addNode({
-      id: parentId,
-      label: parentName,
-      type: 'tag',
-      ...(config.icon        ? { icon: config.icon }               : {}),
-      ...(config.description ? { description: config.description } : {})
-    })
-
-    for (const subtag of config.subtags ?? []) {
-      const subtagId = `tag-${slug(subtag)}`
-
-      addNode({
-        id: subtagId,
-        label: subtag,
-        type: 'tag'
-      })
-
-      addEdge({
-        source: subtagId,
-        target: parentId,
-        type: 'tag'
-      })
-    }
-  }
-
-  // ── 2. Entry nodes ────────────────────────────────────────────────────────
+  // ── 1. Entry nodes ──────────────────────────────────────────────────────────
 
   for (const post of posts) {
     const entryId = slug(post.slug)
@@ -109,36 +80,18 @@ export function buildGraphData(posts: Post[]): GraphData {
       label: post.frontmatter.title,
       type: 'entry',
       description: post.frontmatter.description,
-      url: `/posts/${entryId}`
+      url: `/posts/${entryId}`,
     })
 
-    const tags = post.frontmatter.tags ?? []
+    // ── 2. Frontmatter tag edges ─────────────────────────────────────────────
 
-    // Parent tags already implied by subtags — skip direct connection to these
-    const impliedParents = new Set(
-      tags.flatMap(tag => getParentTags(tag))
-    )
-
-    // ── 3. Tag edges ──────────────────────────────────────────────────────────
-
-    for (const tag of tags) {
+    for (const tag of post.frontmatter.tags ?? []) {
       const tagId = `tag-${slug(tag)}`
-      const config = getTagConfig(tag)
-
-      addNode({
-        id: tagId,
-        label: tag,
-        type: 'tag',
-        ...(config?.icon        ? { icon: config.icon }               : {}),
-        ...(config?.description ? { description: config.description } : {})
-      })
-
-      if (impliedParents.has(tag)) continue
-
+      addNode({ id: tagId, label: tag, type: 'tag' })
       addEdge({ source: entryId, target: tagId, type: 'tag' })
     }
 
-    // ── 4. Inline hashtags ────────────────────────────────────────────────────
+    // ── 3. Inline hashtags ──────────────────────────────────────────────────
 
     const cleanContent = stripCode(post.content)
 
@@ -148,7 +101,7 @@ export function buildGraphData(posts: Post[]): GraphData {
       addEdge({ source: entryId, target: tagId, type: 'tag' })
     }
 
-    // ── 5. Internal links ─────────────────────────────────────────────────────
+    // ── 4. Internal markdown links ──────────────────────────────────────────
 
     for (const match of cleanContent.matchAll(/(?<!!)\[.+?\]\((?!http)(.+?)\)/g)) {
       const target = slug(match[1].replace(/\.md$/, ''))
@@ -156,7 +109,7 @@ export function buildGraphData(posts: Post[]): GraphData {
     }
   }
 
-  // ── 6. Remove dangling link edges ─────────────────────────────────────────
+  // ── 5. Remove dangling link edges ──────────────────────────────────────────
 
   const validEdges = edges.filter(edge => {
     if (edge.type !== 'link') return true
@@ -165,29 +118,68 @@ export function buildGraphData(posts: Post[]): GraphData {
     return false
   })
 
-  // ── 7. Calculate weights ──────────────────────────────────────────────────
+  // ── 6. Calculate weights ────────────────────────────────────────────────────
 
-
-    // First pass — direct connections only
-    for (const node of nodes) {
+  // Pass 1: direct connection count for every node
+  for (const node of nodes) {
     node.weight = validEdges.filter(
-        e => e.source === node.id || e.target === node.id
+      e => e.source === node.id || e.target === node.id
     ).length
+  }
+
+  // Pass 2: subtree accumulation rooted at 'index'.
+  //
+  // We do a BFS from 'index' to build a spanning tree (each node gets one
+  // parent so there are no cycles). Then we walk back up from the leaves,
+  // adding each node's accumulated weight to its parent. The result is that
+  // hub nodes — those that sit above well-connected sub-graphs — grow larger
+  // proportional to the total activity below them.
+  //
+  // Nodes not reachable from 'index' keep their direct-connection weight.
+
+  const adj = new Map<string, string[]>()
+  for (const node of nodes) adj.set(node.id, [])
+  for (const edge of validEdges) {
+    adj.get(edge.source as string)?.push(edge.target as string)
+    adj.get(edge.target as string)?.push(edge.source as string)
+  }
+
+  const children  = new Map<string, string[]>()
+  const visited   = new Set<string>(['index'])
+  const bfsQueue  = ['index']
+  const bfsOrder: string[] = []
+
+  while (bfsQueue.length) {
+    const current = bfsQueue.shift()!
+    bfsOrder.push(current)
+    children.set(current, [])
+    for (const neighbour of adj.get(current) ?? []) {
+      if (!visited.has(neighbour)) {
+        visited.add(neighbour)
+        children.get(current)!.push(neighbour)
+        bfsQueue.push(neighbour)
+      }
     }
+  }
 
-    // Second pass — parent tags inherit the sum of their subtags' weights
-    for (const [parentName, config] of Object.entries(TAG_CONFIG)) {
-    const parentId = `tag-${slug(parentName)}`
-    const parentNode = nodes.find(n => n.id === parentId)
-    if (!parentNode) continue
+  // Walk reverse-BFS order so children are always processed before parents
+  const acc = new Map<string, number>(nodes.map(n => [n.id, n.weight]))
+  for (const nodeId of [...bfsOrder].reverse()) {
+    const childSum = (children.get(nodeId) ?? []).reduce(
+      (sum, child) => sum + (acc.get(child) ?? 0), 0
+    )
+    acc.set(nodeId, (acc.get(nodeId) ?? 0) + childSum)
+  }
+  for (const node of nodes) {
+    if (acc.has(node.id)) node.weight = acc.get(node.id)!
+  }
 
-    const inheritedWeight = (config.subtags ?? []).reduce((sum, subtag) => {
-        const subtagNode = nodes.find(n => n.id === `tag-${slug(subtag)}`)
-        return sum + (subtagNode?.weight ?? 0)
-    }, 0)
-
-    parentNode.weight = Math.max(parentNode.weight, inheritedWeight)
+  // Apply fixed weight overrides (tag nodes can opt out of propagation)
+  for (const node of nodes) {
+    if (node.fixedWeight !== undefined) {
+      node.weight = node.fixedWeight
     }
+  }
 
   return { nodes, edges: validEdges }
 }

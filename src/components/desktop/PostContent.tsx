@@ -20,61 +20,83 @@ export default function PostContent({ slug }: PostContentProps) {
   const [post,    setPost]    = useState<PostData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error,   setError]   = useState<string | null>(null)
+  const [contentVisible, setContentVisible] = useState(false)
 
   useEffect(() => {
-    setLoading(true)
+    const hasExistingPost = post !== null
+    if (!hasExistingPost) {
+      setLoading(true)
+    }
     setError(null)
+    let cancelled = false
+    let swapTimer: ReturnType<typeof setTimeout> | null = null
+
     fetch(`/api/posts/${slug}`)
       .then(r => {
         if (!r.ok) throw new Error('Post not found')
         return r.json()
       })
-      .then(setPost)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false))
+      .then((data: PostData) => {
+        if (cancelled) return
+        if (!hasExistingPost) {
+          // First load: just render and fade in.
+          setPost(data)
+          setLoading(false)
+          requestAnimationFrame(() => {
+            if (!cancelled) setContentVisible(true)
+          })
+          return
+        }
+
+        // Slug switch with existing content:
+        // keep current post on screen until the next post is ready, then swap.
+        setContentVisible(false)
+        swapTimer = setTimeout(() => {
+          if (cancelled) return
+          setPost(data)
+          requestAnimationFrame(() => {
+            if (!cancelled) setContentVisible(true)
+          })
+        }, 120)
+      })
+      .catch((e) => {
+        if (cancelled) return
+        setError(e.message)
+        if (!hasExistingPost) setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+      if (swapTimer) clearTimeout(swapTimer)
+    }
+  // We intentionally don't include `post` so each slug change runs one fetch cycle.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug])
 
-  if (loading) return (
-    <div style={{ padding: '24px', color: '#888', fontFamily: 'var(--font-mplus)' }}>
-      Loading...
-    </div>
-  )
+  if (loading && !post) {
+    return <div className={styles.stateMessage}>Loading...</div>
+  }
 
-  if (error || !post) return (
-    <div style={{ padding: '24px', color: '#888', fontFamily: 'var(--font-mplus)' }}>
-      Could not load post.
-    </div>
-  )
+  if ((error && !post) || !post) {
+    return <div className={styles.stateMessage}>Could not load post.</div>
+  }
 
   return (
-    <div style={{ padding: '24px 32px', overflowY: 'auto', height: '100%', boxSizing: 'border-box' }}>
-      <p style={{
-        fontSize: '48px',
-        color: '#3d3d3d',
-        margin: '0 0 24px 0',
-        fontFamily: 'var(--font-mplus)',
-        fontWeight: '700',
-        letterSpacing: '-0.02em',
-      }}>
-        {post.title}
-      </p>
-      <p style={{
-        fontSize: '11px',
-        color: '#888',
-        margin: '0 0 24px 0',
-        fontFamily: 'var(--font-mplus)',
-        letterSpacing: '0.05em',
-      }}>
-        {new Date(post.pubDate).toLocaleDateString('en-GB', {
-          day: 'numeric', month: 'long', year: 'numeric'
-        })}
-        {post.tags.length > 0 && ` · ${post.tags.join(', ')}`}
-      </p>
+    <div className={styles.root}>
+      <div className={`${styles.inner} ${contentVisible ? styles.contentVisible : styles.contentHidden}`}>
+        <p className={styles.title}>{post.title}</p>
+        <p className={styles.meta}>
+          {new Date(post.pubDate).toLocaleDateString('en-GB', {
+            day: 'numeric', month: 'long', year: 'numeric',
+          })}
+          {post.tags.length > 0 && ` · ${post.tags.join(', ')}`}
+        </p>
 
-      <div
-        className={styles.postContent}
-        dangerouslySetInnerHTML={{ __html: post.contentHtml }}
-      />
+        <div
+          className={styles.postContent}
+          dangerouslySetInnerHTML={{ __html: post.contentHtml }}
+        />
+      </div>
     </div>
   )
 }

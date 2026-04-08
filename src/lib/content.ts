@@ -50,3 +50,14 @@ export async function markdownToHtml(markdown: string): Promise<string> {
   const result = await remark().use(html).process(markdown)
   return result.toString()
 }
+
+/**
+ * Sync frontmatter back to .md files on disk.
+ * Currently a no-op — all posts carry complete frontmatter.
+ * Extend this function to write back derived fields (e.g. auto-generated
+ * pubDate, resolved connections) when that workflow is needed.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function syncFrontmatter(_posts: Post[]): Promise<void> {
+  // no-op
+}

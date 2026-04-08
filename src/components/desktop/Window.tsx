@@ -2,210 +2,237 @@
 'use client'
 
 import { useState } from 'react'
-import { Rnd } from 'react-rnd'
-import { motion, AnimatePresence } from 'framer-motion'
-import { useWindowStore, type WindowItem } from './useWindowStore'
-import { getSnapZone, getSnapDimensions, type SnapZone } from './snapUtils'
-import PostContent from './PostContent'
+import { createPortal } from 'react-dom'
+import type { LeafNode } from './useLayoutStore'
+import { useLayoutStore } from './useLayoutStore'
+import AppHost from './AppHost'
 import { COLORS } from '@/components/graph/graphConstants'
 
-interface WindowProps {
-  win:           WindowItem
-  onSnapPreview: (zone: SnapZone) => void
+/** Fine paper grain (small-scale texture). */
+const NOISE_FINE = `url("data:image/svg+xml,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">
+    <filter id="n" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.95" numOctaves="3" stitchTiles="stitch"/>
+    </filter>
+    <rect width="100%" height="100%" filter="url(#n)" opacity="0.45"/>
+  </svg>`,
+)}")`
+
+/** Coarse stock texture (broad paper tooth). */
+const NOISE_COARSE = `url("data:image/svg+xml,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="144" height="144">
+    <filter id="n" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.22" numOctaves="2" stitchTiles="stitch"/>
+    </filter>
+    <rect width="100%" height="100%" filter="url(#n)" opacity="0.32"/>
+  </svg>`,
+)}")`
+
+/** Subtle directional fibers (anisotropic feel, no color tint). */
+const NOISE_FIBER = `url("data:image/svg+xml,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="56">
+    <filter id="n" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.05 0.85" numOctaves="1" stitchTiles="stitch"/>
+    </filter>
+    <rect width="100%" height="100%" filter="url(#n)" opacity="0.24"/>
+  </svg>`,
+)}")`
+
+export interface WindowProps {
+  node:           LeafNode
+  isActive:       boolean
+  onClose:        () => void
+  onFocus:        () => void
+  /** Mobile: panel is always considered visible (no zoom gating). */
+  alwaysVisible?: boolean
 }
 
-export default function Window({ win, onSnapPreview }: WindowProps) {
-  const { closeWindow, focusWindow, updateWindow } = useWindowStore()
-  const [isDragging, setIsDragging] = useState(false)
-  const [isClosing,  setIsClosing]  = useState(false)
+export default function Window({
+  node,
+  isActive,
+  onClose,
+  onFocus,
+  alwaysVisible = false,
+}: WindowProps) {
+  const panelVisible     = useLayoutStore((s) => s.panelVisible)
+  const effectiveVisible = alwaysVisible || panelVisible
+  const [isCloseHovered, setIsCloseHovered] = useState(false)
+  const [closeTooltipPos, setCloseTooltipPos] = useState({ x: 0, y: 0 })
 
-  const handleClose = () => {
-    setIsClosing(true)
-  }
+  const borderColor = !effectiveVisible
+    ? 'transparent'
+    : isActive ?  'rgba(175, 175, 175, 0.29)' : COLORS.LIGHT
 
-  const handleDragStart = () => {
-    setIsDragging(true)
-    focusWindow(win.id)
-  }
-
-  const handleDrag = (_e: any, d: { x: number; y: number }) => {
-    const zone = getSnapZone(d.x, d.y, window.innerWidth, window.innerHeight, win.width)
-    onSnapPreview(zone)
-  }
-
-  const handleDragStop = (_e: any, d: { x: number; y: number }) => {
-    setIsDragging(false)
-    onSnapPreview(null)
-
-    const zone = getSnapZone(d.x, d.y, window.innerWidth, window.innerHeight, win.width)
-
-    if (zone) {
-      const dims = getSnapDimensions(zone, window.innerWidth, window.innerHeight)
-      updateWindow(win.id, {
-        ...dims,
-        snapZone:   zone,
-        prevX:      win.snapZone ? win.prevX : win.x,
-        prevY:      win.snapZone ? win.prevY : win.y,
-        prevWidth:  win.snapZone ? win.prevWidth  : win.width,
-        prevHeight: win.snapZone ? win.prevHeight : win.height,
-      })
-    } else {
-      updateWindow(win.id, {
-        x:        d.x,
-        y:        d.y,
-        width:    win.snapZone ? win.prevWidth  : win.width,
-        height:   win.snapZone ? win.prevHeight : win.height,
-        snapZone: null,
-      })
-    }
-  }
-
-  const handleFullToggle = () => {
-    if (win.snapZone === 'full') {
-      updateWindow(win.id, {
-        x:        win.prevX,
-        y:        win.prevY,
-        width:    win.prevWidth,
-        height:   win.prevHeight,
-        snapZone: null,
-      })
-    } else {
-      const dims = getSnapDimensions('full', window.innerWidth, window.innerHeight)
-      updateWindow(win.id, {
-        ...dims,
-        snapZone:   'full',
-        prevX:      win.snapZone ? win.prevX : win.x,
-        prevY:      win.snapZone ? win.prevY : win.y,
-        prevWidth:  win.snapZone ? win.prevWidth  : win.width,
-        prevHeight: win.snapZone ? win.prevHeight : win.height,
-      })
-    }
-  }
-
-  // Transform origin is the node that was clicked, relative to window position
-  const originX = win.originX - win.x
-  const originY = win.originY - win.y
+  // When zoom hides the panel, strip glass + blur — otherwise the frosted rect
+  // stays on screen even though content opacity is 0.
+  const glassOn = effectiveVisible
 
   return (
-    <Rnd
-      position={{ x: win.x,     y: win.y      }}
-      size={{     width: win.width, height: win.height }}
-      enableResizing={false}
-      bounds="window"
+    <div
+      onClick={onFocus}
       style={{
-        zIndex:        win.zIndex,
-        position:      'absolute',
-        pointerEvents: 'auto',
-        transition:    isDragging ? 'none' : 'top 0.25s ease, left 0.25s ease, width 0.25s ease, height 0.25s ease',
-        }}
-      onMouseDown={() => focusWindow(win.id)}
-      onDragStart={handleDragStart}
-      onDrag={handleDrag}
-      onDragStop={handleDragStop}
-      dragHandleClassName="window-titlebar"
+        position:             'relative',
+        width:                '100%',
+        height:               '100%',
+        background:           glassOn ? 'rgba(250, 250, 250, 0.85)' : 'transparent',
+        backdropFilter:       glassOn ? 'blur(8px)' : 'none',
+        WebkitBackdropFilter: glassOn ? 'blur(8px)' : 'none',
+        border:               `1px solid ${borderColor}`,
+        overflow:             'hidden',
+        boxSizing:            'border-box',
+        borderRadius:         '3px',
+      }}
     >
-      <AnimatePresence onExitComplete={() => closeWindow(win.id)}>
-        {!isClosing && (
-        <motion.div
-        style={{ width: '100%', height: '100%' }}
-        initial={{ opacity: 0, x: 60 }}
-        animate={{
-            opacity: 1,
-            x:       0,
-            scale:   isDragging ? 0.97 : 1,
+      {/* Paper-like texture stack on top of the glass — no warm tint */}
+      <div
+        aria-hidden
+        style={{
+          position:       'absolute',
+          inset:          0,
+          zIndex:         8,
+          opacity:        glassOn ? 0.18 : 0,
+          backgroundImage: NOISE_COARSE,
+          backgroundRepeat: 'repeat',
+          backgroundSize:   '144px 144px',
+          mixBlendMode:     'multiply',
+          pointerEvents:    'none',
         }}
-        exit={{ opacity: 0, x: 60 }}
-        transition={{
-            opacity: { duration: 0.2 },
-            x:       { type: 'tween', duration: 0.1, ease: 'circOut' },
-            scale:   { duration: 0.15 },
+      />
+      <div
+        aria-hidden
+        style={{
+          position:       'absolute',
+          inset:          0,
+          zIndex:         9,
+          opacity:        glassOn ? 0.2 : 0,
+          backgroundImage: NOISE_FINE,
+          backgroundRepeat: 'repeat',
+          backgroundSize:   '64px 64px',
+          mixBlendMode:     'multiply',
+          pointerEvents:    'none',
         }}
+      />
+      <div
+        aria-hidden
+        style={{
+          position:       'absolute',
+          inset:          0,
+          zIndex:         9,
+          opacity:        glassOn ? 0.08 : 0,
+          backgroundImage: NOISE_FIBER,
+          backgroundRepeat: 'repeat',
+          backgroundSize:   '160px 56px',
+          mixBlendMode:     'multiply',
+          pointerEvents:    'none',
+        }}
+      />
+      <button
+        onClick={(e) => { e.stopPropagation(); onClose() }}
+        onMouseEnter={() => setIsCloseHovered(true)}
+        onMouseMove={(e) => setCloseTooltipPos({ x: e.clientX + 10, y: e.clientY + 12 })}
+        onMouseLeave={() => setIsCloseHovered(false)}
+        style={{
+          position:       'absolute',
+          top:            '16px',
+          left:           '16px',
+          zIndex:         10,
+          width:          '12px',
+          height:         '12px',
+          display:        'flex',
+          alignItems:     'center',
+          justifyContent: 'center',
+          background:     'transparent',
+          border:         'none',
+          cursor:         'pointer',
+          fontSize:       '14px',
+          color:          !effectiveVisible ? 'transparent' : COLORS.MID,
+          lineHeight:     1,
+          padding:        0,
+          fontFamily:     'var(--font-mplus), sans-serif',
+          userSelect:     'none',
+        }}
+        aria-label="Close window"
+      >
+        {(() => {
+          const iconScale = isCloseHovered ? 1 : 0.5
+          return (
+        <svg
+          width="8"
+          height="8"
+          viewBox="0 0 8 8"
+          aria-hidden="true"
+          style={{
+            display: 'block',
+            transform: `scale(${iconScale})`,
+            transformOrigin: 'center',
+            transition: 'transform 45ms linear',
+            willChange: 'transform',
+            backfaceVisibility: 'hidden',
+          }}
         >
-            <div style={{
-              width:         '100%',
-              height:        '100%',
-              background:    'rgba(255,255,255,0.99)',
-              border:        `1px solid ${COLORS.OFFWHITE}`,
-              display:       'flex',
-              flexDirection: 'column',
-              overflow:      'hidden',
-              boxShadow:     isDragging
-                ? '0 16px 48px rgba(0,0,0,0.016)'
-                : '0 4px 24px rgba(0,0,0,0.008)',
-              boxSizing:     'border-box',
-              transition:    'box-shadow 0.15s ease',
-            }}>
-
-              {/* Title bar */}
-              <div
-                className="window-titlebar"
-                style={{
-                  display:        'flex',
-                  alignItems:     'center',
-                  justifyContent: 'space-between',
-                  padding:        '0 12px',
-                  height:         '36px',
-                  borderBottom:   `1px solid ${COLORS.OFFWHITE}`,
-                  cursor:         'move',
-                  flexShrink:     0,
-                  userSelect:     'none',
-                }}
-              >
-                <span style={{
-                  fontSize:      '11px',
-                  fontFamily:    'var(--font-mplus)',
-                  fontWeight:    '700',
-                  color:         COLORS.BLACK,
-                }}>
-                  {win.title}
-                </span>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <button
-                    onClick={handleFullToggle}
-                    onMouseDown={(e) => e.stopPropagation()}
-                    style={{
-                      background:  'none',
-                      border:      'none',
-                      cursor:      'pointer',
-                      fontSize:    '11px',
-                      color:       COLORS.MID,
-                      padding:     '4px',
-                      lineHeight:  1,
-                      fontFamily:  'var(--font-mplus)',
-                    }}
-                  >
-                    {win.snapZone === 'full' ? '⊡' : '⊞'}
-                  </button>
-
-                  <button
-                    onClick={handleClose}
-                    onMouseDown={(e) => e.stopPropagation()}
-                    style={{
-                      background:  'none',
-                      border:      'none',
-                      cursor:      'pointer',
-                      fontSize:    '16px',
-                      color:       COLORS.MID,
-                      padding:     '4px',
-                      lineHeight:  1,
-                      fontFamily:  'var(--font-mplus)',
-                    }}
-                  >
-                    ×
-                  </button>
-                </div>
-              </div>
-
-              {/* Content */}
-              <div style={{ flex: 1, overflow: 'hidden' }}>
-                {win.type === 'post' && <PostContent slug={win.slug} />}
-              </div>
-
-            </div>
-          </motion.div>
+          <defs>
+            <filter id="close-noise" x="-20%" y="-20%" width="140%" height="140%">
+              <feTurbulence
+                type="fractalNoise"
+                baseFrequency="0.62"
+                numOctaves="3"
+                stitchTiles="stitch"
+                result="noise"
+              />
+            </filter>
+          </defs>
+          <rect x="0" y="0" width="8" height="8" fill={!effectiveVisible ? 'transparent' : COLORS.MID} />
+          <rect
+            x="0"
+            y="0"
+            width="8"
+            height="8"
+            fill="#ffffff"
+            filter="url(#close-noise)"
+            opacity={effectiveVisible ? 0.13 : 0}
+            style={{ mixBlendMode: 'multiply' }}
+          />
+        </svg>
+          )
+        })()}
+      </button>
+      {isCloseHovered && effectiveVisible && typeof document !== 'undefined' &&
+        createPortal(
+          <div
+            style={{
+              position: 'fixed',
+              left: closeTooltipPos.x,
+              top: closeTooltipPos.y,
+              zIndex: 10050,
+              pointerEvents: 'none',
+              fontFamily: 'var(--font-mplus), sans-serif',
+              fontSize: 11,
+              color: COLORS.OFFWHITE,
+              background: COLORS.BLACK,
+              border: `1px solid ${COLORS.BLACK}`,
+              padding: '2px 6px',
+              lineHeight: 1.2,
+              whiteSpace: 'nowrap',
+            }}
+            aria-hidden="true"
+          >
+            close
+          </div>,
+          document.body,
         )}
-      </AnimatePresence>
-    </Rnd>
+      <div
+        style={{
+          position:      'relative',
+          zIndex:        2,
+          width:         '100%',
+          height:        '100%',
+          opacity:       effectiveVisible ? 1 : 0,
+          overflow:      'hidden',
+          pointerEvents: effectiveVisible ? 'auto' : 'none',
+        }}
+      >
+        <AppHost node={node} />
+      </div>
+    </div>
   )
 }

@@ -1,66 +1,18 @@
 {
   "nodes": [
     {
-      "id": "tag-fbr-cafe",
-      "label": "FBR Cafe",
-      "type": "tag",
-      "icon": "icon-cafe.svg",
-      "description": "Coffee culture and cafe experiences",
-      "weight": 13
-    },
-    {
-      "id": "tag-coffee",
-      "label": "Coffee",
-      "type": "tag",
-      "weight": 3
-    },
-    {
-      "id": "tag-food",
-      "label": "Food",
-      "type": "tag",
-      "weight": 8
-    },
-    {
-      "id": "tag-events",
-      "label": "Events",
-      "type": "tag",
-      "weight": 2
-    },
-    {
-      "id": "tag-cuts-n-cups",
-      "label": "Cuts n Cups",
-      "type": "tag",
-      "icon": "icon-cuts.svg",
-      "description": "Hair styling and grooming services",
-      "weight": 10
-    },
-    {
-      "id": "tag-recordings",
-      "label": "Recordings",
-      "type": "tag",
-      "weight": 7
-    },
-    {
-      "id": "tag-bookings",
-      "label": "Bookings",
-      "type": "tag",
-      "weight": 1
-    },
-    {
-      "id": "tag-design-faction",
-      "label": "Design Faction",
-      "type": "tag",
-      "icon": "icon-design.svg",
-      "description": "Creative design projects and visual identity",
-      "weight": 0
-    },
-    {
       "id": "amyos",
       "label": "AmyOs [VIC]",
       "type": "entry",
       "description": "Affiliated with @breakthewire as an artist and presenter, AmyOs sets have reportedly made 2 FBR cafe patrons wake up in Berlin with no memory of how they got there.",
       "url": "/posts/amyos",
       "weight": 1
+    },
+    {
+      "id": "tag-recordings",
+      "label": "Recordings",
+      "type": "tag",
+      "weight": 13
     },
     {
       "id": "bl3ss",
@@ -95,12 +47,24 @@
       "weight": 1
     },
     {
+      "id": "tag-coffee",
+      "label": "Coffee",
+      "type": "tag",
+      "weight": 7
+    },
+    {
       "id": "giardiniera-e-furikake",
       "label": "Giardiniera e Furikake",
       "type": "entry",
       "description": "Daikon, Lotus root, Romanesco Cauliflower, White & Yellow Dutch Carrots, French and Watermelon radish brined over a long period to fully collaborate colours & flavours of each vegetable",
       "url": "/posts/giardiniera-e-furikake",
       "weight": 1
+    },
+    {
+      "id": "tag-food",
+      "label": "Food",
+      "type": "tag",
+      "weight": 14
     },
     {
       "id": "gnocchi-grandi-al-pesto",
@@ -159,6 +123,56 @@
       "weight": 1
     },
     {
+      "id": "mdot",
+      "label": "Mdot",
+      "type": "entry",
+      "description": "TBA",
+      "url": "/posts/mdot",
+      "weight": 6
+    },
+    {
+      "id": "tag-tech",
+      "label": "tech",
+      "type": "tag",
+      "weight": 1
+    },
+    {
+      "id": "tag-kickstarter",
+      "label": "kickstarter",
+      "type": "tag",
+      "weight": 1
+    },
+    {
+      "id": "cuts-n-cups",
+      "label": "Cuts n Cups",
+      "type": "entry",
+      "description": "A recurring event series pairing live music sessions with guided coffee tastings, held at FBR Cafe.",
+      "url": "/posts/cuts-n-cups",
+      "weight": 20
+    },
+    {
+      "id": "tag-bookings",
+      "label": "bookings",
+      "type": "tag",
+      "weight": 1
+    },
+    {
+      "id": "fbr-cafe",
+      "label": "FBR Cafe",
+      "type": "entry",
+      "description": "A specialty coffee shop and gathering space in Sydney's inner west, where coffee meets culture.",
+      "url": "/posts/fbr-cafe",
+      "weight": 27
+    },
+    {
+      "id": "index",
+      "label": "FBR",
+      "type": "entry",
+      "description": "A creative collective based in Sydney connecting communities through food, music, and people.",
+      "url": "/posts/index",
+      "weight": 56
+    },
+    {
       "id": "omakase",
       "label": "Omakase",
       "type": "entry",
@@ -168,36 +182,6 @@
     }
   ],
   "edges": [
-    {
-      "source": "tag-coffee",
-      "target": "tag-fbr-cafe",
-      "type": "tag"
-    },
-    {
-      "source": "tag-food",
-      "target": "tag-fbr-cafe",
-      "type": "tag"
-    },
-    {
-      "source": "tag-events",
-      "target": "tag-fbr-cafe",
-      "type": "tag"
-    },
-    {
-      "source": "tag-recordings",
-      "target": "tag-cuts-n-cups",
-      "type": "tag"
-    },
-    {
-      "source": "tag-events",
-      "target": "tag-cuts-n-cups",
-      "type": "tag"
-    },
-    {
-      "source": "tag-bookings",
-      "target": "tag-cuts-n-cups",
-      "type": "tag"
-    },
     {
       "source": "amyos",
       "target": "tag-recordings",
@@ -262,6 +246,71 @@
       "source": "tri-pane-spalmare",
       "target": "tag-food",
       "type": "tag"
+    },
+    {
+      "source": "mdot",
+      "target": "tag-tech",
+      "type": "tag"
+    },
+    {
+      "source": "mdot",
+      "target": "tag-kickstarter",
+      "type": "tag"
+    },
+    {
+      "source": "cuts-n-cups",
+      "target": "tag-recordings",
+      "type": "tag"
+    },
+    {
+      "source": "cuts-n-cups",
+      "target": "tag-bookings",
+      "type": "tag"
+    },
+    {
+      "source": "cuts-n-cups",
+      "target": "tag-coffee",
+      "type": "tag"
+    },
+    {
+      "source": "cuts-n-cups",
+      "target": "fbr-cafe",
+      "type": "link"
+    },
+    {
+      "source": "fbr-cafe",
+      "target": "tag-coffee",
+      "type": "tag"
+    },
+    {
+      "source": "fbr-cafe",
+      "target": "tag-food",
+      "type": "tag"
+    },
+    {
+      "source": "fbr-cafe",
+      "target": "cuts-n-cups",
+      "type": "link"
+    },
+    {
+      "source": "fbr-cafe",
+      "target": "mdot",
+      "type": "link"
+    },
+    {
+      "source": "index",
+      "target": "fbr-cafe",
+      "type": "link"
+    },
+    {
+      "source": "index",
+      "target": "cuts-n-cups",
+      "type": "link"
+    },
+    {
+      "source": "index",
+      "target": "mdot",
+      "type": "link"
     },
     {
       "source": "omakase",

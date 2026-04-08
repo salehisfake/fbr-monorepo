@@ -2,8 +2,12 @@
 
 import { useEffect, useRef } from 'react'
 import * as d3 from 'd3'
-import { COLLISION_RADIUS_MAP } from './graphConstants'
+import { getNodeSize } from './graphUtils'
 import type { GraphNode, GraphEdge } from '@/lib/graph'
+import type { SimPreset } from '@/components/desktop/useMenuStore'
+
+type SimNode = GraphNode & d3.SimulationNodeDatum
+type SimEdge = GraphEdge & d3.SimulationLinkDatum<SimNode>
 
 interface Props {
   nodes:  GraphNode[]
@@ -11,32 +15,43 @@ interface Props {
   width:  number
   height: number
   onTick: () => void
+  simPreset: SimPreset
 }
 
-export function useGraphSimulation({ nodes, edges, width, height, onTick }: Props) {
-  const simulationRef = useRef<d3.Simulation<GraphNode, GraphEdge> | null>(null)
+const SIM_PRESET_CONFIG: Record<SimPreset, { linkDistance: number; linkStrength: number; charge: number; collidePadding: number }> = {
+  calm: { linkDistance: 76, linkStrength: 0.35, charge: -220, collidePadding: 9 },
+  balanced: { linkDistance: 60, linkStrength: 0.5, charge: -300, collidePadding: 6 },
+  dynamic: { linkDistance: 50, linkStrength: 0.75, charge: -380, collidePadding: 4 },
+}
+
+export function useGraphSimulation({ nodes, edges, width, height, onTick, simPreset }: Props) {
+  const simulationRef = useRef<d3.Simulation<SimNode, SimEdge> | null>(null)
 
   useEffect(() => {
     if (!width || !height || !nodes.length) return
+    const preset = SIM_PRESET_CONFIG[simPreset]
 
-    const sim = d3.forceSimulation<GraphNode>(nodes)
+    const simNodes = nodes as SimNode[]
+    const simEdges = edges as SimEdge[]
+
+    const sim = d3.forceSimulation<SimNode>(simNodes)
       .force('link',
-        d3.forceLink<GraphNode, GraphEdge>(edges)
+        d3.forceLink<SimNode, SimEdge>(simEdges)
           .id((d) => d.id)
-          .distance(60)
-          .strength(0.5)
+          .distance(preset.linkDistance)
+          .strength(preset.linkStrength)
       )
-      .force('charge', d3.forceManyBody().strength(-300))
+      .force('charge', d3.forceManyBody().strength(preset.charge))
       .force('collide',
-        d3.forceCollide<GraphNode>()
-          .radius((d) => COLLISION_RADIUS_MAP[d.type] ?? COLLISION_RADIUS_MAP.default)
+        d3.forceCollide<SimNode>()
+          .radius((d) => getNodeSize(d.weight) / 2 + preset.collidePadding)
       )
       .force('center', d3.forceCenter(width / 2, height / 2))
-      .on('tick', onTick)
+      .on('tick', onTick as () => void)
 
     simulationRef.current = sim
     return () => { sim.stop() }
-  }, [nodes, edges, width, height])
+  }, [nodes, edges, width, height, onTick, simPreset])
 
   return simulationRef
 }

@@ -1,16 +1,10 @@
 // apps/web/src/components/graph/graphConstants.ts
 
 export const COLORS = {
-  BLACK:      '#484848',
-  MID:        '#6c6c6c',
-  MIDLIGHT:  '#b1b1b1' ,
-  LIGHT:      '#cccccc',
-  OFFWHITE: '#f8f8f8',
-  WHITE:      '#ffffff',
-}
-
-export const COLLISION_RADIUS_MAP: Record<string, number> = {
-  entry:   12,
-  tag:     20,
-  default: 14,
+  BLACK:    '#3f3f46',  // gray-700
+  MID:      '#71717b',  // gray-500
+  MIDLIGHT: '#9f9fa9',  // gray-400
+  LIGHT:    '#d4d4d8',  // gray-300
+  OFFWHITE: '#fafafa',  // gray-50
+  WHITE:    '#ffffff',  // pure white
 }
