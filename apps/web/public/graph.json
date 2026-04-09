@@ -1,0 +1,326 @@
+{
+  "nodes": [
+    {
+      "id": "amyos",
+      "label": "AmyOs [VIC]",
+      "type": "entry",
+      "description": "Affiliated with @breakthewire as an artist and presenter, AmyOs sets have reportedly made 2 FBR cafe patrons wake up in Berlin with no memory of how they got there.",
+      "url": "/posts/amyos",
+      "weight": 1
+    },
+    {
+      "id": "tag-recordings",
+      "label": "Recordings",
+      "type": "tag",
+      "weight": 13
+    },
+    {
+      "id": "bl3ss",
+      "label": "BL3SS [UK]",
+      "type": "entry",
+      "description": "1 Hour of UK Garage & Basshouse",
+      "url": "/posts/bl3ss",
+      "weight": 1
+    },
+    {
+      "id": "cliffandshuga",
+      "label": "Clifford & SHUGA [AUS]",
+      "type": "entry",
+      "description": "Remember that night I didn't come home? / CNC ONLINE / Recorded on December 13, 2024 / Featuring Clifford & SHUGA / [Speed garage, Wubs, Dubs] / ■ Clifford & SHUGA get the lab rowdy with unreleased speed garage and dub tracks, high-energy rhythms & deep bass-lines.",
+      "url": "/posts/cliffandshuga",
+      "weight": 1
+    },
+    {
+      "id": "cnc011",
+      "label": "SPENG [SYD]",
+      "type": "entry",
+      "description": "THE SPENG EFFECT / CNC004 / Recorded on 28 September 2024 / With SPENG aka Max aka SPENGLETRON 90000000000",
+      "url": "/posts/cnc011",
+      "weight": 1
+    },
+    {
+      "id": "filter",
+      "label": "Filter coffee",
+      "type": "entry",
+      "description": "Filter coffee is brewed by pouring hot water over ground coffee, allowing it to drip through a paper or metal filter.",
+      "url": "/posts/filter",
+      "weight": 1
+    },
+    {
+      "id": "tag-coffee",
+      "label": "Coffee",
+      "type": "tag",
+      "weight": 7
+    },
+    {
+      "id": "giardiniera-e-furikake",
+      "label": "Giardiniera e Furikake",
+      "type": "entry",
+      "description": "Daikon, Lotus root, Romanesco Cauliflower, White & Yellow Dutch Carrots, French and Watermelon radish brined over a long period to fully collaborate colours & flavours of each vegetable",
+      "url": "/posts/giardiniera-e-furikake",
+      "weight": 1
+    },
+    {
+      "id": "tag-food",
+      "label": "Food",
+      "type": "tag",
+      "weight": 14
+    },
+    {
+      "id": "gnocchi-grandi-al-pesto",
+      "label": "Gnocchi Grandi Al Pesto",
+      "type": "entry",
+      "description": "Handmade Gnocchi, Creamy Pesto made with home-grown Basil, Shaved Grana Padano and Cured egg yolk",
+      "url": "/posts/gnocchi-grandi-al-pesto",
+      "weight": 1
+    },
+    {
+      "id": "hotbabe93",
+      "label": "HOTBABE93 [SYD]",
+      "type": "entry",
+      "description": "Hotbabe93 played a vibrant set alongside the Chef's introduction of Focaccia to FBR café's set menu.",
+      "url": "/posts/hotbabe93",
+      "weight": 1
+    },
+    {
+      "id": "il-tiramisu",
+      "label": "Il Tiramisu",
+      "type": "entry",
+      "description": "Delicious Mascarpone cream layered with dark chocolate and Saviardi soaked in house-brewed espresso and Disaronno. Accompanied by a coffee agar plate and a dusting of coffee powder",
+      "url": "/posts/il-tiramisu",
+      "weight": 1
+    },
+    {
+      "id": "insalata-pomodoro",
+      "label": "Insalata Pomodoro",
+      "type": "entry",
+      "description": "Home Grown Calabrese Oxheart Tomato and Basil, Confit garlic oil and Grana Padano w/ a dusting of dried oregano",
+      "url": "/posts/insalata-pomodoro",
+      "weight": 1
+    },
+    {
+      "id": "mehmet",
+      "label": "Mehmet Alpodogan [DEK]",
+      "type": "entry",
+      "description": "Fusing sounds from Paris to Sydney. Mehmet Alpdogan's sets echo diverse cities. Vibrant landscapes. House, Electro, Progressive, Acid, Techno.",
+      "url": "/posts/mehmet",
+      "weight": 1
+    },
+    {
+      "id": "sandwicchia",
+      "label": "La Sandwicchia",
+      "type": "entry",
+      "description": "Paper thin San Danielle Prosciutto, Homemade Tapenade, Stracciatella, Rucola Piccalo, Shaved fennel dressed in Garlic oil engrossed in fresh Focaccia sourced locally",
+      "url": "/posts/sandwicchia",
+      "weight": 1
+    },
+    {
+      "id": "tri-pane-spalmare",
+      "label": "Tri Pane Spalmare",
+      "type": "entry",
+      "description": "Fresh Focaccia w/ a selection of condimental spreads to complement and tease the following dishes.",
+      "url": "/posts/tri-pane-spalmare",
+      "weight": 1
+    },
+    {
+      "id": "mdot",
+      "label": "Mdot",
+      "type": "entry",
+      "description": "TBA",
+      "url": "/posts/mdot",
+      "weight": 6
+    },
+    {
+      "id": "tag-tech",
+      "label": "tech",
+      "type": "tag",
+      "weight": 1
+    },
+    {
+      "id": "tag-kickstarter",
+      "label": "kickstarter",
+      "type": "tag",
+      "weight": 1
+    },
+    {
+      "id": "cuts-n-cups",
+      "label": "Cuts n Cups",
+      "type": "entry",
+      "description": "A recurring event series pairing live music sessions with guided coffee tastings, held at FBR Cafe.",
+      "url": "/posts/cuts-n-cups",
+      "weight": 20
+    },
+    {
+      "id": "tag-bookings",
+      "label": "bookings",
+      "type": "tag",
+      "weight": 1
+    },
+    {
+      "id": "fbr-cafe",
+      "label": "FBR Cafe",
+      "type": "entry",
+      "description": "A specialty coffee shop and gathering space in Sydney's inner west, where coffee meets culture.",
+      "url": "/posts/fbr-cafe",
+      "weight": 27
+    },
+    {
+      "id": "index",
+      "label": "FBR",
+      "type": "entry",
+      "description": "A creative collective based in Sydney connecting communities through food, music, and people.",
+      "url": "/posts/index",
+      "weight": 56
+    },
+    {
+      "id": "omakase",
+      "label": "Omakase",
+      "type": "entry",
+      "description": "The phrase omakase, literally 'I leave it up to you',[3] is most commonly used when dining at Japanese restaurants where the customer leaves it up to the chef to select and serve seasonal specialties",
+      "url": "/posts/omakase",
+      "weight": 2
+    }
+  ],
+  "edges": [
+    {
+      "source": "amyos",
+      "target": "tag-recordings",
+      "type": "tag"
+    },
+    {
+      "source": "bl3ss",
+      "target": "tag-recordings",
+      "type": "tag"
+    },
+    {
+      "source": "cliffandshuga",
+      "target": "tag-recordings",
+      "type": "tag"
+    },
+    {
+      "source": "cnc011",
+      "target": "tag-recordings",
+      "type": "tag"
+    },
+    {
+      "source": "filter",
+      "target": "tag-coffee",
+      "type": "tag"
+    },
+    {
+      "source": "giardiniera-e-furikake",
+      "target": "tag-food",
+      "type": "tag"
+    },
+    {
+      "source": "gnocchi-grandi-al-pesto",
+      "target": "tag-food",
+      "type": "tag"
+    },
+    {
+      "source": "hotbabe93",
+      "target": "tag-recordings",
+      "type": "tag"
+    },
+    {
+      "source": "il-tiramisu",
+      "target": "tag-food",
+      "type": "tag"
+    },
+    {
+      "source": "insalata-pomodoro",
+      "target": "tag-food",
+      "type": "tag"
+    },
+    {
+      "source": "mehmet",
+      "target": "tag-recordings",
+      "type": "tag"
+    },
+    {
+      "source": "sandwicchia",
+      "target": "tag-food",
+      "type": "tag"
+    },
+    {
+      "source": "tri-pane-spalmare",
+      "target": "tag-food",
+      "type": "tag"
+    },
+    {
+      "source": "mdot",
+      "target": "tag-tech",
+      "type": "tag"
+    },
+    {
+      "source": "mdot",
+      "target": "tag-kickstarter",
+      "type": "tag"
+    },
+    {
+      "source": "cuts-n-cups",
+      "target": "tag-recordings",
+      "type": "tag"
+    },
+    {
+      "source": "cuts-n-cups",
+      "target": "tag-bookings",
+      "type": "tag"
+    },
+    {
+      "source": "cuts-n-cups",
+      "target": "tag-coffee",
+      "type": "tag"
+    },
+    {
+      "source": "cuts-n-cups",
+      "target": "fbr-cafe",
+      "type": "link"
+    },
+    {
+      "source": "fbr-cafe",
+      "target": "tag-coffee",
+      "type": "tag"
+    },
+    {
+      "source": "fbr-cafe",
+      "target": "tag-food",
+      "type": "tag"
+    },
+    {
+      "source": "fbr-cafe",
+      "target": "cuts-n-cups",
+      "type": "link"
+    },
+    {
+      "source": "fbr-cafe",
+      "target": "mdot",
+      "type": "link"
+    },
+    {
+      "source": "index",
+      "target": "fbr-cafe",
+      "type": "link"
+    },
+    {
+      "source": "index",
+      "target": "cuts-n-cups",
+      "type": "link"
+    },
+    {
+      "source": "index",
+      "target": "mdot",
+      "type": "link"
+    },
+    {
+      "source": "omakase",
+      "target": "tag-coffee",
+      "type": "tag"
+    },
+    {
+      "source": "omakase",
+      "target": "tag-food",
+      "type": "tag"
+    }
+  ]
+}

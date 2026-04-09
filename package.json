@@ -1,0 +1,22 @@
+{
+  "name": "FBRmonorepo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "pnpm run build-graph && turbo build",
+    "build-graph": "tsx scripts/build-graph.ts",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.32.1",
+  "devDependencies": {
+    "@types/node": "^20.19.37",
+    "tsx": "^4.21.0",
+    "turbo": "^2.8.16"
+  }
+}

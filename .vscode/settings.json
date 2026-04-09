@@ -1,0 +1,7 @@
+{
+  "git.autoRepositoryDetection": false,
+  "git.repositories": [
+    "C:\\Users\\admin\\FBR\\FBR-WEBSITE-CODE\\FBRmonorepo"
+  ],
+  "git.detectSubmodules": false
+}

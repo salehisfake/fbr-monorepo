@@ -1,0 +1,23 @@
+{
+    "compression_settings": {
+        "max_tree_depth": 8,
+        "threshold_alpha": 25.0,
+        "threshold_colour": 25.0,
+        "merge_method": "StDev",
+        "background_colour": [0,0,0,0],
+        "stroke_colour": [0,0,0,0],
+        "stroke_width": 5,
+        "seed": 0
+    },
+    "comments": [
+        "1: Maximum number of recursions", 
+        "2: [0.0,255.0] Higher number -> more compression",
+        "3: [0.0, 255.0] Higher number -> more compression",
+        "(technically these thresholds can be above 255.0, but doing so generally yields incomprehensible results).",
+        "4: StDev or Range",
+        "5: RGBA",
+        "6: RGBA",
+        "7: Stroke width between quadrants.",
+        "8: Seed functionality is unclear. Default is 0."
+    ]
+}
