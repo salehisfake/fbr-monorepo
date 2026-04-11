@@ -179,6 +179,14 @@
       "description": "The phrase omakase, literally 'I leave it up to you',[3] is most commonly used when dining at Japanese restaurants where the customer leaves it up to the chef to select and serve seasonal specialties",
       "url": "/posts/omakase",
       "weight": 2
+    },
+    {
+      "id": "bookings",
+      "label": "Bookings",
+      "type": "entry",
+      "description": "Contact FBR for collaborations, events, and private bookings.",
+      "url": "/posts/bookings",
+      "weight": 3
     }
   ],
   "edges": [
@@ -310,6 +318,21 @@
     {
       "source": "index",
       "target": "mdot",
+      "type": "link"
+    },
+    {
+      "source": "index",
+      "target": "bookings",
+      "type": "link"
+    },
+    {
+      "source": "bookings",
+      "target": "tag-bookings",
+      "type": "tag"
+    },
+    {
+      "source": "bookings",
+      "target": "fbr-cafe",
       "type": "link"
     },
     {
