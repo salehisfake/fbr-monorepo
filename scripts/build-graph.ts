@@ -48,7 +48,15 @@ async function main() {
   // ── Step 3: build and write graph.json ────────────────────────────────
 
   console.log('\n⟳  Building graph…')
-  const graphData = buildGraphData(posts)
+  const { data: graphData, warnings } = buildGraphData(posts)
+
+  for (const w of warnings) {
+    if (w.code === 'BFS_ROOT_MISSING') {
+      console.error(`\n✗  [${w.code}] ${w.message}`)
+      process.exit(1)
+    }
+    console.warn(`   ⚠  [${w.code}]${w.sourceId ? ` (${w.sourceId})` : ''} ${w.message}`)
+  }
 
   const outputPath = path.join(
     process.cwd(),

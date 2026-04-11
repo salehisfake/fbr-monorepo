@@ -11,8 +11,62 @@ import {
   useLayoutStore,
   getLeaves,
   getFocusedSlug,
+  parsePostPath,
+  postPathFromSlug,
 } from './useLayoutStore'
-import { COLORS } from '@/components/graph/graphConstants'
+import { COLORS, Z, RADIUS, BREAKPOINTS, LAYOUT } from '@/lib/tokens'
+
+// ── Hooks ─────────────────────────────────────────────────────────────────────
+
+/** Returns true when the viewport is narrower than the mobile breakpoint. */
+function useIsMobile(): boolean {
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < BREAKPOINTS.MOBILE)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+  return isMobile
+}
+
+/**
+ * On mount: syncs open post from `/posts/[slug]` (or legacy `?p=`), or `initialSlug` on `/`.
+ * Browser back/forward uses the pathname; `/` clears windows (graph home).
+ */
+function useUrlSync(initialSlug?: string) {
+  const openPost = useLayoutStore((s) => s.openPost)
+  useEffect(() => {
+    const url = new URL(window.location.href)
+    const legacyP = url.searchParams.get('p')
+    if (legacyP !== null && legacyP !== '') {
+      const path = postPathFromSlug(legacyP)
+      window.history.replaceState({ slug: legacyP }, '', path + window.location.hash)
+    }
+
+    const parsed = parsePostPath(window.location.pathname)
+    if (parsed.kind === 'home') {
+      if (initialSlug) openPost(initialSlug, { replace: true })
+      return
+    }
+    openPost(parsed.slug, { replace: true })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  useEffect(() => {
+    const handler = () => {
+      const parsed = parsePostPath(window.location.pathname)
+      if (parsed.kind === 'home') {
+        useLayoutStore.setState({ root: null, focusedId: null, mobileActivePage: 0 })
+        return
+      }
+      openPost(parsed.slug, { skipPushState: true })
+    }
+    window.addEventListener('popstate', handler)
+    return () => window.removeEventListener('popstate', handler)
+  }, [openPost])
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
 
 interface DesktopProps {
   /** Provided by SSR pages (e.g. /posts/[slug]) so the correct post opens on
@@ -21,46 +75,16 @@ interface DesktopProps {
 }
 
 export default function Desktop({ initialSlug }: DesktopProps) {
-  const openPost        = useLayoutStore((s) => s.openPost)
+  const isMobile = useIsMobile()
+  useUrlSync(initialSlug)
+
   const root            = useLayoutStore((s) => s.root)
   const panelVisible    = useLayoutStore((s) => s.panelVisible)
   const panelCollapsed  = useLayoutStore((s) => s.panelCollapsed)
   const setPanelCollapsed = useLayoutStore((s) => s.setPanelCollapsed)
   const focusedSlug     = useLayoutStore(getFocusedSlug)
 
-  const [isMobile,       setIsMobile]       = useState(false)
   const [showEdgeButton, setShowEdgeButton] = useState(false)
-
-  // ── Responsive breakpoint ─────────────────────────────────────────────────
-
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768)
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
-  }, [])
-
-  // ── URL initialisation ────────────────────────────────────────────────────
-  // On mount, read the ?p= query param or fall back to initialSlug or 'index'.
-  // Use replaceState so the initial load does not add an extra history entry.
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const slug   = params.get('p') || initialSlug || 'index'
-    openPost(slug, { replace: true })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  // ── Browser back / forward ────────────────────────────────────────────────
-
-  useEffect(() => {
-    const handler = (e: PopStateEvent) => {
-      const slug = (e.state as { slug?: string } | null)?.slug || 'index'
-      openPost(slug, { skipPushState: true })
-    }
-    window.addEventListener('popstate', handler)
-    return () => window.removeEventListener('popstate', handler)
-  }, [openPost])
 
   // ── Derived layout values ─────────────────────────────────────────────────
 
@@ -95,20 +119,20 @@ export default function Desktop({ initialSlug }: DesktopProps) {
       <MenuBar />
       {/* Graph fills the full viewport */}
       <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
-        <DexGraph />
+        <DexGraph enableWindowOffset={true} />
       </div>
 
       {/* Window panel — right-anchored */}
       <div
         style={{
           position:      'absolute',
-          top:           20,
-          right:         0,
-          bottom:        0,
+          top:           LAYOUT.MENUBAR_HEIGHT + LAYOUT.WINDOW_GAP,
+          left:         LAYOUT.WINDOW_GAP,
+          bottom:        LAYOUT.WINDOW_GAP,
           width:         viewerWidth,
           maxWidth:      '50vw',
-          zIndex:        10,
-          overflow:      'hidden',
+          zIndex:        Z.CHROME,
+          overflow:      'visible',
           boxSizing:     'border-box',
           pointerEvents: panelActive ? 'auto' : 'none',
         }}
@@ -126,7 +150,7 @@ export default function Desktop({ initialSlug }: DesktopProps) {
           right:         0,
           width:         '28px',
           height:        '100%',
-          zIndex:        9990,
+          zIndex:        Z.EDGE,
           pointerEvents: 'auto',
         }}
       >
@@ -142,7 +166,7 @@ export default function Desktop({ initialSlug }: DesktopProps) {
               height:         '20px',
               background:     COLORS.OFFWHITE,
               border:         `1px solid ${COLORS.LIGHT}`,
-              borderRadius:   '2px',
+              borderRadius:   RADIUS.SM,
               cursor:         'pointer',
               display:        'flex',
               alignItems:     'center',
@@ -200,7 +224,7 @@ function MobileLayout() {
       >
         {/* Page 0: graph */}
         <div style={{ width: '100vw', height: '100vh', flexShrink: 0 }}>
-          <DexGraph />
+          <DexGraph enableWindowOffset={false} />
         </div>
 
         {/* Pages 1+: one per open window */}

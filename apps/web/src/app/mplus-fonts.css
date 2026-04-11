@@ -1,0 +1,799 @@
+/* Auto-generated from FontBase MPlus.zip */
+/* Source files live in /public/fonts/mplus */
+@font-face {
+  font-family: 'MPlus 1 Code Nerd';
+  src: url('/fonts/mplus/M%2B1CodeNerdFont-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Code Nerd';
+  src: url('/fonts/mplus/M%2B1CodeNerdFont-ExtraLight.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Code Nerd';
+  src: url('/fonts/mplus/M%2B1CodeNerdFont-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Code Nerd';
+  src: url('/fonts/mplus/M%2B1CodeNerdFont-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Code Nerd Mono';
+  src: url('/fonts/mplus/M%2B1CodeNerdFontMono-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Code Nerd Mono';
+  src: url('/fonts/mplus/M%2B1CodeNerdFontMono-ExtraLight.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Code Nerd Mono';
+  src: url('/fonts/mplus/M%2B1CodeNerdFontMono-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Code Nerd Mono';
+  src: url('/fonts/mplus/M%2B1CodeNerdFontMono-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Code Nerd Mono';
+  src: url('/fonts/mplus/M%2B1CodeNerdFontMono-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Code Nerd Mono';
+  src: url('/fonts/mplus/M%2B1CodeNerdFontMono-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Code Nerd Mono';
+  src: url('/fonts/mplus/M%2B1CodeNerdFontMono-Thin.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Code Nerd Propo';
+  src: url('/fonts/mplus/M%2B1CodeNerdFontPropo-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Code Nerd Propo';
+  src: url('/fonts/mplus/M%2B1CodeNerdFontPropo-ExtraLight.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Code Nerd Propo';
+  src: url('/fonts/mplus/M%2B1CodeNerdFontPropo-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Code Nerd Propo';
+  src: url('/fonts/mplus/M%2B1CodeNerdFontPropo-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Code Nerd Propo';
+  src: url('/fonts/mplus/M%2B1CodeNerdFontPropo-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Code Nerd Propo';
+  src: url('/fonts/mplus/M%2B1CodeNerdFontPropo-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Code Nerd Propo';
+  src: url('/fonts/mplus/M%2B1CodeNerdFontPropo-Thin.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Code Nerd';
+  src: url('/fonts/mplus/M%2B1CodeNerdFont-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Code Nerd';
+  src: url('/fonts/mplus/M%2B1CodeNerdFont-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Code Nerd';
+  src: url('/fonts/mplus/M%2B1CodeNerdFont-Thin.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Nerd';
+  src: url('/fonts/mplus/M%2B1NerdFont-Black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Nerd';
+  src: url('/fonts/mplus/M%2B1NerdFont-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Nerd';
+  src: url('/fonts/mplus/M%2B1NerdFont-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Nerd';
+  src: url('/fonts/mplus/M%2B1NerdFont-ExtraLight.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Nerd';
+  src: url('/fonts/mplus/M%2B1NerdFont-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Nerd';
+  src: url('/fonts/mplus/M%2B1NerdFont-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Nerd Propo';
+  src: url('/fonts/mplus/M%2B1NerdFontPropo-Black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Nerd Propo';
+  src: url('/fonts/mplus/M%2B1NerdFontPropo-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Nerd Propo';
+  src: url('/fonts/mplus/M%2B1NerdFontPropo-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Nerd Propo';
+  src: url('/fonts/mplus/M%2B1NerdFontPropo-ExtraLight.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Nerd Propo';
+  src: url('/fonts/mplus/M%2B1NerdFontPropo-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Nerd Propo';
+  src: url('/fonts/mplus/M%2B1NerdFontPropo-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Nerd Propo';
+  src: url('/fonts/mplus/M%2B1NerdFontPropo-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Nerd Propo';
+  src: url('/fonts/mplus/M%2B1NerdFontPropo-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Nerd Propo';
+  src: url('/fonts/mplus/M%2B1NerdFontPropo-Thin.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Nerd';
+  src: url('/fonts/mplus/M%2B1NerdFont-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Nerd';
+  src: url('/fonts/mplus/M%2B1NerdFont-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 1 Nerd';
+  src: url('/fonts/mplus/M%2B1NerdFont-Thin.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 2 Nerd';
+  src: url('/fonts/mplus/M%2B2NerdFont-Black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 2 Nerd';
+  src: url('/fonts/mplus/M%2B2NerdFont-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 2 Nerd';
+  src: url('/fonts/mplus/M%2B2NerdFont-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 2 Nerd';
+  src: url('/fonts/mplus/M%2B2NerdFont-ExtraLight.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 2 Nerd';
+  src: url('/fonts/mplus/M%2B2NerdFont-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 2 Nerd';
+  src: url('/fonts/mplus/M%2B2NerdFont-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 2 Nerd Propo';
+  src: url('/fonts/mplus/M%2B2NerdFontPropo-Black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 2 Nerd Propo';
+  src: url('/fonts/mplus/M%2B2NerdFontPropo-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 2 Nerd Propo';
+  src: url('/fonts/mplus/M%2B2NerdFontPropo-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 2 Nerd Propo';
+  src: url('/fonts/mplus/M%2B2NerdFontPropo-ExtraLight.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 2 Nerd Propo';
+  src: url('/fonts/mplus/M%2B2NerdFontPropo-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 2 Nerd Propo';
+  src: url('/fonts/mplus/M%2B2NerdFontPropo-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 2 Nerd Propo';
+  src: url('/fonts/mplus/M%2B2NerdFontPropo-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 2 Nerd Propo';
+  src: url('/fonts/mplus/M%2B2NerdFontPropo-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 2 Nerd Propo';
+  src: url('/fonts/mplus/M%2B2NerdFontPropo-Thin.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 2 Nerd';
+  src: url('/fonts/mplus/M%2B2NerdFont-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 2 Nerd';
+  src: url('/fonts/mplus/M%2B2NerdFont-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus 2 Nerd';
+  src: url('/fonts/mplus/M%2B2NerdFont-Thin.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat50 Nerd';
+  src: url('/fonts/mplus/M%2BCodeLat50NerdFont-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat50 Nerd';
+  src: url('/fonts/mplus/M%2BCodeLat50NerdFont-ExtraLight.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat50 Nerd';
+  src: url('/fonts/mplus/M%2BCodeLat50NerdFont-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat50 Nerd';
+  src: url('/fonts/mplus/M%2BCodeLat50NerdFont-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat50 Nerd Mono';
+  src: url('/fonts/mplus/M%2BCodeLat50NerdFontMono-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat50 Nerd Mono';
+  src: url('/fonts/mplus/M%2BCodeLat50NerdFontMono-ExtraLight.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat50 Nerd Mono';
+  src: url('/fonts/mplus/M%2BCodeLat50NerdFontMono-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat50 Nerd Mono';
+  src: url('/fonts/mplus/M%2BCodeLat50NerdFontMono-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat50 Nerd Mono';
+  src: url('/fonts/mplus/M%2BCodeLat50NerdFontMono-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat50 Nerd Mono';
+  src: url('/fonts/mplus/M%2BCodeLat50NerdFontMono-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat50 Nerd Mono';
+  src: url('/fonts/mplus/M%2BCodeLat50NerdFontMono-Thin.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat50 Nerd Propo';
+  src: url('/fonts/mplus/M%2BCodeLat50NerdFontPropo-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat50 Nerd Propo';
+  src: url('/fonts/mplus/M%2BCodeLat50NerdFontPropo-ExtraLight.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat50 Nerd Propo';
+  src: url('/fonts/mplus/M%2BCodeLat50NerdFontPropo-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat50 Nerd Propo';
+  src: url('/fonts/mplus/M%2BCodeLat50NerdFontPropo-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat50 Nerd Propo';
+  src: url('/fonts/mplus/M%2BCodeLat50NerdFontPropo-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat50 Nerd Propo';
+  src: url('/fonts/mplus/M%2BCodeLat50NerdFontPropo-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat50 Nerd Propo';
+  src: url('/fonts/mplus/M%2BCodeLat50NerdFontPropo-Thin.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat50 Nerd';
+  src: url('/fonts/mplus/M%2BCodeLat50NerdFont-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat50 Nerd';
+  src: url('/fonts/mplus/M%2BCodeLat50NerdFont-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat50 Nerd';
+  src: url('/fonts/mplus/M%2BCodeLat50NerdFont-Thin.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat60 Nerd';
+  src: url('/fonts/mplus/M%2BCodeLat60NerdFont-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat60 Nerd';
+  src: url('/fonts/mplus/M%2BCodeLat60NerdFont-ExtraLight.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat60 Nerd';
+  src: url('/fonts/mplus/M%2BCodeLat60NerdFont-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat60 Nerd';
+  src: url('/fonts/mplus/M%2BCodeLat60NerdFont-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat60 Nerd Mono';
+  src: url('/fonts/mplus/M%2BCodeLat60NerdFontMono-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat60 Nerd Mono';
+  src: url('/fonts/mplus/M%2BCodeLat60NerdFontMono-ExtraLight.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat60 Nerd Mono';
+  src: url('/fonts/mplus/M%2BCodeLat60NerdFontMono-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat60 Nerd Mono';
+  src: url('/fonts/mplus/M%2BCodeLat60NerdFontMono-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat60 Nerd Mono';
+  src: url('/fonts/mplus/M%2BCodeLat60NerdFontMono-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat60 Nerd Mono';
+  src: url('/fonts/mplus/M%2BCodeLat60NerdFontMono-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat60 Nerd Mono';
+  src: url('/fonts/mplus/M%2BCodeLat60NerdFontMono-Thin.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat60 Nerd Propo';
+  src: url('/fonts/mplus/M%2BCodeLat60NerdFontPropo-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat60 Nerd Propo';
+  src: url('/fonts/mplus/M%2BCodeLat60NerdFontPropo-ExtraLight.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat60 Nerd Propo';
+  src: url('/fonts/mplus/M%2BCodeLat60NerdFontPropo-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat60 Nerd Propo';
+  src: url('/fonts/mplus/M%2BCodeLat60NerdFontPropo-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat60 Nerd Propo';
+  src: url('/fonts/mplus/M%2BCodeLat60NerdFontPropo-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat60 Nerd Propo';
+  src: url('/fonts/mplus/M%2BCodeLat60NerdFontPropo-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat60 Nerd Propo';
+  src: url('/fonts/mplus/M%2BCodeLat60NerdFontPropo-Thin.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat60 Nerd';
+  src: url('/fonts/mplus/M%2BCodeLat60NerdFont-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat60 Nerd';
+  src: url('/fonts/mplus/M%2BCodeLat60NerdFont-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MPlus CodeLat60 Nerd';
+  src: url('/fonts/mplus/M%2BCodeLat60NerdFont-Thin.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --font-mplus: 'MPlus 1 Nerd', sans-serif;
+  --font-noto-serif: 'MPlus 2 Nerd Propo', 'MPlus 2 Nerd', sans-serif;
+  --font-mplus-code: 'MPlus 1 Code Nerd', 'MPlus CodeLat60 Nerd Mono', monospace;
+}

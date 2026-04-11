@@ -6,25 +6,15 @@ import * as d3 from 'd3'
 import { useGraphSimulation } from './useGraphSimulation'
 import { getNodeStyle, appendShape } from './graphUtils'
 import { COLORS } from './graphConstants'
+import { DURATION } from '@/lib/tokens'
 import type { GraphData, GraphNode, GraphEdge } from '@/lib/graph'
-import { useLayoutStore, getFocusedSlug } from '@/components/desktop/useLayoutStore'
+import { useLayoutStore, getFocusedSlug, getLeaves } from '@/components/desktop/useLayoutStore'
 import { useMenuStore } from '@/components/desktop/useMenuStore'
 import DitherOverlay from '@/components/DitherOverlay'
-import {
-  buildAdjacency,
-  buildHopMapFromSeeds,
-  collectForcedIds,
-  priorityScore,
-  selectVisibleLabelIds,
-} from './labelCulling'
 
-/** Below this zoom scale, all labels stay hidden (unchanged). */
+/** Below this zoom scale, all labels stay hidden. */
 const LABEL_ZOOM_THRESHOLD = 1.0
-/** Focused/forced labels can appear slightly earlier than the general pool. */
-const FOCUS_LABEL_ZOOM_THRESHOLD = 0.9
-/** By this zoom, focus-hop reveal reaches final “show all labels” step. */
-const HOP_REVEAL_END_ZOOM = 2
-/** Medium randomness: per-node multiplier in [0.6, 1.4] (±40%). */
+/** Per-node multiplier range for staggered label animations. */
 const TRANSITION_RANDOM_MIN = 0.05
 const TRANSITION_RANDOM_MAX = 1.4
 /** Global multiplier for all label reveal timings. */
@@ -51,93 +41,83 @@ function randomDurationSeconds(baseSec: number, nodeId: string): string {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-export default function DexGraph() {
+interface DexGraphProps {
+  enableWindowOffset?: boolean
+}
+
+export default function DexGraph({ enableWindowOffset = true }: DexGraphProps) {
+  const WINDOW_SHIFT_RATIO = 0.25
+  const ENTER_OVERSHOOT_RATIO = 0.30
+  const EXIT_OVERSHOOT_RATIO = -0.05
+  const MID_MOVE_NUDGE_RATIO = 0.27
+  const SETTLE_MS = 240
+  const IMPULSE_MS = 360
+
   const svgRef           = useRef<SVGSVGElement>(null)
   const zoomTransformRef = useRef<d3.ZoomTransform | null>(null)
   const linkRef          = useRef<d3.Selection<SVGLineElement, GraphEdge, SVGGElement, unknown> | null>(null)
   const nodeRef          = useRef<d3.Selection<SVGGElement,    GraphNode, SVGGElement, unknown> | null>(null)
   const [graphData,   setGraphData]   = useState<GraphData | null>(null)
   const [dimensions,  setDimensions]  = useState({ width: 0, height: 0 })
-  const zoomScaleRef  = useRef(1)
-  const openPost        = useLayoutStore((s) => s.openPost)
-  const splitOpen       = useLayoutStore((s) => s.splitOpen)
-  const activeSlug      = useLayoutStore(getFocusedSlug)
-  const setPanelVisible = useLayoutStore((s) => s.setPanelVisible)
-  const labelMode       = useMenuStore((s) => s.labelMode)
-  const simPreset       = useMenuStore((s) => s.simPreset)
+  const zoomScaleRef     = useRef(1)
+  const openPost         = useLayoutStore((s) => s.openPost)
+  const splitOpen        = useLayoutStore((s) => s.splitOpen)
+  const focusedId        = useLayoutStore((s) => s.focusedId)
+  const windowCount      = useLayoutStore((s) => getLeaves(s.root).length)
+  const activeSlug       = useLayoutStore(getFocusedSlug)
+  const simPreset        = useMenuStore((s) => s.simPreset)
   const showDebugOverlay = useMenuStore((s) => s.showDebugOverlay)
-  const activeSlugRef = useRef<string>(activeSlug)
-  const pulseGroupRef = useRef<d3.Selection<SVGGElement, unknown, null, undefined> | null>(null)
-  const graphDataRef  = useRef<GraphData | null>(null)
-  const rafRef        = useRef<number | null>(null)
-  const labelRef      = useRef<d3.Selection<SVGTextElement, GraphNode, SVGGElement, unknown> | null>(null)
-  const zoomBehaviorRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null)
-  const nodeMapRef    = useRef<Map<string, GraphNode>>(new Map())
-  const graphNodesRef = useRef<GraphNode[]>([])
-  const adjacencyRef  = useRef<Map<string, Set<string>>>(new Map())
-  const hoveredNodeIdRef = useRef<string | null>(null)
-  const dimensionsRef = useRef({ width: 0, height: 0 })
-  const hopCacheKeyRef = useRef('')
-  const hopCacheMapRef = useRef<Map<string, number> | null>(null)
-  /** Set in draw effect — tick + zoom call this to refresh label culling. */
-  const scheduleLabelCullingRef = useRef<() => void>(() => {})
-  const lastCullAtRef = useRef(0)
-  const cullingRafRef = useRef<number | null>(null)
+  const activeSlugRef    = useRef<string | null>(focusedId ? activeSlug : null)
+  const pulseGroupRef    = useRef<d3.Selection<SVGGElement, unknown, null, undefined> | null>(null)
+  const graphDataRef     = useRef<GraphData | null>(null)
+  const rafRef           = useRef<number | null>(null)
+  const labelRef         = useRef<d3.Selection<SVGTextElement, GraphNode, SVGGElement, unknown> | null>(null)
+  const zoomBehaviorRef  = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null)
+  const nodeMapRef       = useRef<Map<string, GraphNode>>(new Map())
+  const graphNodesRef    = useRef<GraphNode[]>([])
+  const dimensionsRef    = useRef({ width: 0, height: 0 })
+  const prevWindowCountRef = useRef<number | null>(null)
+  const lastSettledTargetRef = useRef<number | null>(null)
+  const settleTimerRef     = useRef<number | null>(null)
+  const impulseTimerRef    = useRef<number | null>(null)
 
-// ── Sync graphData ref ──────────────────────────────────────────────────────
+  // ── Sync refs ───────────────────────────────────────────────────────────────
 
   useEffect(() => { graphDataRef.current = graphData }, [graphData])
+  useEffect(() => { dimensionsRef.current = dimensions }, [dimensions])
 
-  useEffect(() => {
-    dimensionsRef.current = dimensions
-  }, [dimensions])
+  // ── Parallax node transform ─────────────────────────────────────────────────
 
-  // ── Track active slug + reposition pulse orb immediately on slug change ───
-
-  useEffect(() => {
-    activeSlugRef.current = activeSlug
-
-    const node = nodeMapRef.current.get(activeSlug) as any
-    if (node?.x !== undefined && pulseGroupRef.current) {
-      pulseGroupRef.current.attr('transform', `translate(${node.x},${node.y})`)
-    }
-    // Briefly wake the simulation so ticked fires and confirms position
-    simulationRef.current?.alpha(0.1).restart()
-    scheduleLabelCullingRef.current()
-  }, [activeSlug])
-
-// parralax
   function getNodeTransform(d: any, k: number): string {
     const multiplier = d.type === 'tag'
       ? 1 + (k - 1) * (0.01 + Math.min(d.weight * 0.01, 0.05))
-       : 1 + (k - 1) * -0.1
+      : 1 + (k - 1) * -0.1
     return `translate(${d.x},${d.y}) scale(${multiplier})`
-    }
-
-  // ── Tick ───────────────────────────────────────────────────────────────────
-
-const ticked = useCallback(() => {
-  linkRef.current
-    ?.attr('x1', (d: any) => d.source.x)
-     .attr('y1', (d: any) => d.source.y)
-     .attr('x2', (d: any) => d.target.x)
-     .attr('y2', (d: any) => d.target.y)
-
-  nodeRef.current
-    ?.attr('transform', (d: any) =>
-      getNodeTransform(d, zoomScaleRef.current)
-    )
-
-  // Keep pulse orb centred on the active node
-  const activeNode = nodeMapRef.current.get(activeSlugRef.current) as any
-  if (activeNode?.x !== undefined && pulseGroupRef.current) {
-    pulseGroupRef.current.attr('transform', `translate(${activeNode.x},${activeNode.y})`)
   }
 
-  scheduleLabelCullingRef.current()
-}, [])
+  // ── Tick ────────────────────────────────────────────────────────────────────
 
-  const simulationRef = useGraphSimulation({
+  const ticked = useCallback(() => {
+    linkRef.current
+      ?.attr('x1', (d: any) => d.source.x)
+       .attr('y1', (d: any) => d.source.y)
+       .attr('x2', (d: any) => d.target.x)
+       .attr('y2', (d: any) => d.target.y)
+
+    nodeRef.current
+      ?.attr('transform', (d: any) => getNodeTransform(d, zoomScaleRef.current))
+
+    const activeNode = activeSlugRef.current
+      ? (nodeMapRef.current.get(activeSlugRef.current) as any)
+      : null
+    if (activeNode?.x !== undefined && pulseGroupRef.current) {
+      pulseGroupRef.current.attr('transform', `translate(${activeNode.x},${activeNode.y})`)
+    } else if (pulseGroupRef.current) {
+      pulseGroupRef.current.attr('transform', 'translate(-9999,-9999)')
+    }
+  }, [])
+
+  const { simulationRef, forceXRef } = useGraphSimulation({
     nodes:  graphData?.nodes ?? [],
     edges:  graphData?.edges ?? [],
     width:  dimensions.width,
@@ -146,7 +126,95 @@ const ticked = useCallback(() => {
     simPreset,
   })
 
-  // ── Fetch ──────────────────────────────────────────────────────────────────
+  // ── Track active slug + reposition pulse orb immediately on slug change ────
+
+  useEffect(() => {
+    const selectedSlug = focusedId ? activeSlug : null
+    activeSlugRef.current = selectedSlug
+    const node = selectedSlug ? (nodeMapRef.current.get(selectedSlug) as any) : null
+    if (node?.x !== undefined && pulseGroupRef.current) {
+      pulseGroupRef.current.attr('transform', `translate(${node.x},${node.y})`)
+    } else if (pulseGroupRef.current) {
+      pulseGroupRef.current.attr('transform', 'translate(-9999,-9999)')
+    }
+    simulationRef.current?.alpha(0.1).restart()
+  }, [activeSlug, focusedId, simulationRef])
+
+  // ── Desktop graph offset helper (animated for lively motion) ───────────────
+
+  useEffect(() => {
+    if (!enableWindowOffset || !dimensions.width) return
+    const sim = simulationRef.current
+    const forceX = forceXRef.current
+    if (!sim || !forceX) return
+
+    if (settleTimerRef.current) window.clearTimeout(settleTimerRef.current)
+    if (impulseTimerRef.current) window.clearTimeout(impulseTimerRef.current)
+
+    const viewportCenterX = dimensions.width / 2
+    const transform = zoomTransformRef.current ?? d3.zoomIdentity
+    const zoomK = Math.max(transform.k || 1, 0.0001)
+    const panX = transform.x
+    const screenToWorldX = (screenX: number) => (screenX - panX) / zoomK
+
+    const settledScreenTargetX = viewportCenterX + (windowCount > 0 ? dimensions.width * WINDOW_SHIFT_RATIO : 0)
+    const prevWindowCount = prevWindowCountRef.current
+
+    const wasEmpty = (prevWindowCount ?? 0) === 0
+    const isEmpty = windowCount === 0
+    const enteringFirstWindow = wasEmpty && !isEmpty
+    const exitingLastWindow = !wasEmpty && isEmpty
+
+    const transitionScreenTargetX = enteringFirstWindow
+      ? viewportCenterX + dimensions.width * ENTER_OVERSHOOT_RATIO
+      : exitingLastWindow
+        ? viewportCenterX + dimensions.width * EXIT_OVERSHOOT_RATIO
+        : (windowCount > 0 && (prevWindowCount ?? 0) > 0)
+          ? viewportCenterX + dimensions.width * MID_MOVE_NUDGE_RATIO
+          : settledScreenTargetX
+
+    const transitionTargetX = screenToWorldX(transitionScreenTargetX)
+    const settledTargetX = screenToWorldX(settledScreenTargetX)
+
+    const originalDecay = sim.velocityDecay()
+    sim.velocityDecay(0.32)
+
+    if (lastSettledTargetRef.current !== null && Math.abs(lastSettledTargetRef.current - settledTargetX) < 0.5) {
+      sim.velocityDecay(originalDecay)
+      prevWindowCountRef.current = windowCount
+      return
+    }
+
+    forceX.x(transitionTargetX)
+    sim.alpha(0.55).alphaTarget(0.08).restart()
+
+    impulseTimerRef.current = window.setTimeout(() => {
+      sim.alphaTarget(0)
+      sim.velocityDecay(originalDecay)
+      impulseTimerRef.current = null
+    }, IMPULSE_MS)
+
+    settleTimerRef.current = window.setTimeout(() => {
+      const nextForceX = forceXRef.current
+      const nextSim = simulationRef.current
+      if (!nextForceX || !nextSim) return
+      nextForceX.x(settledTargetX)
+      nextSim.alpha(0.28).restart()
+      lastSettledTargetRef.current = settledTargetX
+      settleTimerRef.current = null
+    }, SETTLE_MS)
+
+    prevWindowCountRef.current = windowCount
+  }, [enableWindowOffset, windowCount, dimensions.width, graphData, simPreset, simulationRef, forceXRef])
+
+  useEffect(() => {
+    return () => {
+      if (settleTimerRef.current) window.clearTimeout(settleTimerRef.current)
+      if (impulseTimerRef.current) window.clearTimeout(impulseTimerRef.current)
+    }
+  }, [])
+
+  // ── Fetch ───────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     fetch('/graph.json')
@@ -155,7 +223,7 @@ const ticked = useCallback(() => {
       .catch(console.error)
   }, [])
 
-  // ── Resize observer ────────────────────────────────────────────────────────
+  // ── Resize observer ─────────────────────────────────────────────────────────
 
   useEffect(() => {
     if (!svgRef.current) return
@@ -167,7 +235,7 @@ const ticked = useCallback(() => {
     return () => ro.disconnect()
   }, [])
 
-  // ── Draw ───────────────────────────────────────────────────────────────────
+  // ── Draw ────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     if (!svgRef.current || !graphData || !dimensions.width) return
@@ -177,19 +245,13 @@ const ticked = useCallback(() => {
     ]
     const edges = graphData.edges
     graphNodesRef.current = nodes
-    adjacencyRef.current = buildAdjacency(edges)
-    hopCacheKeyRef.current = ''
-    hopCacheMapRef.current = null
     dimensionsRef.current = dimensions
     const { width, height } = dimensions
 
     const svg = d3.select<SVGSVGElement, unknown>(svgRef.current)
     svg.selectAll('*').remove()
 
-    // ── Pulse-orb animation ────────────────────────────────────────────────
-    // Three concentric rings emanate outward from the active node.
-    // The dither texture comes for free — the site-wide DitherOverlay already
-    // composites its color-burn pattern over every pixel of the viewport.
+    // ── Pulse-orb animation ──────────────────────────────────────────────────
 
     svg.append('style').text(`
       @keyframes orb-ripple {
@@ -198,7 +260,7 @@ const ticked = useCallback(() => {
         100% { transform: scale(2.8); opacity: 0;    }
       }
       .orb-ring {
-        animation: orb-ripple 3.8s ease-out infinite;
+        animation: orb-ripple ${DURATION.ORB_RIPPLE} ease-out infinite;
         transform-box: fill-box;
         transform-origin: center;
       }
@@ -210,7 +272,7 @@ const ticked = useCallback(() => {
 
     // Layer order (bottom → top): pulse → links → nodes
     const pulseLayer = root.append('g').attr('class', 'pulse-layer')
-      .attr('transform', 'translate(-9999,-9999)')  // offscreen until first tick
+      .attr('transform', 'translate(-9999,-9999)')
     ;[1, 2, 3].forEach(i => {
       pulseLayer.append('rect')
         .attr('x', -5).attr('y', -5)
@@ -228,141 +290,10 @@ const ticked = useCallback(() => {
 
     // ── Zoom ─────────────────────────────────────────────────────────────────
 
-    const runLabelCulling = () => {
-      const sel = labelRef.current
-      if (!sel || sel.empty()) return
-
-      const k = zoomScaleRef.current
-      if (k < FOCUS_LABEL_ZOOM_THRESHOLD) {
-        sel.style('opacity', 0)
-        return
-      }
-
-      const alpha = simulationRef.current?.alpha() ?? 0
-      const now = performance.now()
-      const minGap = alpha > 0.04 ? 90 : 0
-      if (now - lastCullAtRef.current < minGap) return
-      lastCullAtRef.current = now
-
-      const { width: w, height: h } = dimensionsRef.current
-      if (!w) return
-
-      const nodeList = graphNodesRef.current
-      if (!nodeList.length) return
-
-      if (labelMode === 'all') {
-        sel
-          .style('transition', (d: GraphNode) => `opacity ${randomDurationSeconds(0.16, d.id)} ease`)
-          .style('opacity', 1)
-        return
-      }
-
-      const t = zoomTransformRef.current ?? d3.zoomIdentity
-      const [cx, cy] = t.invert([w / 2, h / 2])
-
-      const activeId = activeSlugRef.current
-      const hoveredId = hoveredNodeIdRef.current
-      const focusSeeds = new Set<string>()
-      if (activeId) focusSeeds.add(activeId)
-
-      // Focused/selected mode: reveal labels hop-by-hop from selected nodes.
-      if (focusSeeds.size > 0) {
-        const focusKey = Array.from(focusSeeds).sort().join('|')
-        let hopMap = hopCacheMapRef.current
-        if (!hopMap || hopCacheKeyRef.current !== focusKey) {
-          hopMap = buildHopMapFromSeeds(adjacencyRef.current, focusSeeds)
-          hopCacheMapRef.current = hopMap
-          hopCacheKeyRef.current = focusKey
-        }
-        const connectedMaxHop =
-          hopMap.size > 0 ? Math.max(...Array.from(hopMap.values())) : 0
-        const totalSteps = connectedMaxHop + 2
-        const p = Math.max(
-          0,
-          Math.min(
-            1,
-            (k - FOCUS_LABEL_ZOOM_THRESHOLD) /
-              Math.max(0.001, HOP_REVEAL_END_ZOOM - FOCUS_LABEL_ZOOM_THRESHOLD),
-          ),
-        )
-        const stepIndex = Math.floor(p * (totalSteps - 1))
-        const isFinalStep = stepIndex >= totalSteps - 1
-
-        const visible = new Set<string>()
-        if (isFinalStep) {
-          nodeList.forEach((n) => visible.add(n.id))
-        } else {
-          hopMap.forEach((hop, id) => {
-            if (hop <= stepIndex) visible.add(id)
-          })
-          // Always include seeds even if disconnected/missing from adjacency map.
-          focusSeeds.forEach((id) => visible.add(id))
-        }
-
-        // Hover reveal is strictly one-hop only: hovered node + direct neighbors.
-        // It should never become an additional hop seed.
-        if (hoveredId) {
-          visible.add(hoveredId)
-          adjacencyRef.current.get(hoveredId)?.forEach((n) => visible.add(n))
-        }
-
-        sel
-          .style('transition', (d: GraphNode) =>
-            focusSeeds.has(d.id)
-              ? `opacity ${randomDurationSeconds(0.11, d.id)} ease`
-              : `opacity ${randomDurationSeconds(0.22, d.id)} ease`
-          )
-          .style('opacity', (d: GraphNode) => (visible.has(d.id) ? 1 : 0))
-        return
-      }
-
-      // No focus selected: use viewport-priority + overlap culling.
-      const forced = collectForcedIds(activeId, hoveredId, adjacencyRef.current)
-
-      if (k < LABEL_ZOOM_THRESHOLD) {
-        sel
-          .style('transition', (d: GraphNode) =>
-            forced.has(d.id)
-              ? `opacity ${randomDurationSeconds(0.12, d.id)} ease`
-              : `opacity ${randomDurationSeconds(0.26, d.id)} ease`
-          )
-          .style('opacity', (d: GraphNode) => (forced.has(d.id) ? 1 : 0))
-        return
-      }
-
-      const maxNonForced = Math.min(
-        48,
-        8 + Math.floor((k - LABEL_ZOOM_THRESHOLD) * 28),
-      )
-      const rects = new Map<string, DOMRect>()
-      sel.each(function (d: GraphNode) {
-        rects.set(d.id, (this as SVGTextElement).getBoundingClientRect())
-      })
-      const visible = selectVisibleLabelIds(
-        nodeList,
-        rects,
-        forced,
-        (d) => priorityScore(d, cx, cy),
-        maxNonForced,
-        6,
-      )
-      sel
-        .style('transition', (d: GraphNode) =>
-          forced.has(d.id)
-            ? `opacity ${randomDurationSeconds(0.12, d.id)} ease`
-            : `opacity ${randomDurationSeconds(0.24, d.id)} ease 0.08s`
-        )
-        .style('opacity', (d: GraphNode) => (visible.has(d.id) ? 1 : 0))
+    const setLabelVisibility = (k: number) => {
+      labelRef.current
+        ?.style('opacity', k < LABEL_ZOOM_THRESHOLD ? 0 : 1)
     }
-
-    const scheduleLabelCulling = () => {
-      if (cullingRafRef.current != null) return
-      cullingRafRef.current = window.requestAnimationFrame(() => {
-        cullingRafRef.current = null
-        runLabelCulling()
-      })
-    }
-    scheduleLabelCullingRef.current = scheduleLabelCulling
 
     const zoomBehavior = d3.zoom<SVGSVGElement, unknown>()
       .scaleExtent([0.8, 5])
@@ -375,20 +306,13 @@ const ticked = useCallback(() => {
         const k = event.transform.k
         zoomScaleRef.current = k
 
-        // Throttle node transform updates to once per animation frame
         if (rafRef.current) cancelAnimationFrame(rafRef.current)
         rafRef.current = requestAnimationFrame(() => {
           nodeRef.current?.attr('transform', (d: any) => getNodeTransform(d, k))
           rafRef.current = null
         })
 
-        // Focused labels can appear first, then the general pool after threshold.
-        if (k < FOCUS_LABEL_ZOOM_THRESHOLD) {
-          labelRef.current?.style('opacity', 0)
-        } else {
-          scheduleLabelCulling()
-        }
-        setPanelVisible(k >= LABEL_ZOOM_THRESHOLD)
+        setLabelVisibility(k)
       })
     zoomBehaviorRef.current = zoomBehavior
 
@@ -400,11 +324,11 @@ const ticked = useCallback(() => {
       .selectAll<SVGLineElement, GraphEdge>('line')
       .data(edges)
       .join('line')
-            .attr('stroke', COLORS.LIGHT)
-            .attr('stroke-width', 0.5)
-            .attr('stroke-opacity', 0.7)
-            .attr('stroke-dasharray', 'none')
-            .attr('vector-effect', 'none') as any
+      .attr('stroke', COLORS.LIGHT)
+      .attr('stroke-width', 0.5)
+      .attr('stroke-opacity', 0.7)
+      .attr('stroke-dasharray', 'none')
+      .attr('vector-effect', 'none') as any
 
     // ── Nodes ─────────────────────────────────────────────────────────────────
 
@@ -415,16 +339,12 @@ const ticked = useCallback(() => {
       .attr('class', 'node')
       .style('cursor', 'pointer')
       .on('mouseover', (_e, d) => {
-        hoveredNodeIdRef.current = d.id
-        scheduleLabelCulling()
         linkRef.current
           ?.attr('stroke', COLORS.LIGHT)
           .filter((l: any) => l.source.id === d.id || l.target.id === d.id)
           .attr('stroke', COLORS.MID)
       })
       .on('mouseleave', () => {
-        hoveredNodeIdRef.current = null
-        scheduleLabelCulling()
         linkRef.current?.attr('stroke', COLORS.LIGHT)
       })
       .on('click', (event, d) => {
@@ -451,14 +371,10 @@ const ticked = useCallback(() => {
           })
       ) as any
 
-    // Render each node's shape and label
     nodeRef.current?.each(function(d) {
       const el    = d3.select<SVGGElement, GraphNode>(this as SVGGElement)
       const style = getNodeStyle(d.type as any, d.weight)
 
-      // Invisible hit-area disc matching the physics collision field.
-      // fill:'transparent' (not 'none') is required so the interior captures
-      // pointer events, giving the interaction the same radius as the simulation.
       const hitRadius = style.size / 2 + 6
       el.append('circle')
         .attr('r',  hitRadius)
@@ -479,19 +395,15 @@ const ticked = useCallback(() => {
         .style('font-family', 'var(--font-mplus), sans-serif')
         .style('font-weight', 400)
         .style('opacity',     0)
-        .style('transition',  (d: GraphNode) => `opacity ${randomDurationSeconds(0.2, d.id)} ease`)
+        .style('transition',  `opacity ${randomDurationSeconds(0.2, d.id)} ease`)
         .attr('class',        style.labelClass)
         .attr('pointer-events', 'all')
         .attr('user-select',    'none')
     })
 
-    // Build node lookup map — O(1) access in ticked() and slug effect
     nodeMapRef.current = new Map(nodes.map(n => [n.id, n]))
-
-    // Cache label selection — avoids live DOM query in zoom handler every frame
     labelRef.current = nodeGroup.selectAll<SVGTextElement, GraphNode>('.entryLabel, .tagLabel') as any
 
-    // Apply zoom only after labels exist so the first zoom event can run culling.
     const savedTransform = zoomTransformRef.current
     if (savedTransform) {
       svg.call(zoomBehavior.transform, savedTransform)
@@ -503,17 +415,9 @@ const ticked = useCallback(() => {
     }
 
     simulationRef.current?.alpha(1).restart()
+  }, [graphData, dimensions, simPreset])
 
-    scheduleLabelCulling()
-
-    return () => {
-      scheduleLabelCullingRef.current = () => {}
-      if (cullingRafRef.current != null) {
-        cancelAnimationFrame(cullingRafRef.current)
-        cullingRafRef.current = null
-      }
-    }
-  }, [graphData, dimensions, labelMode, simPreset])
+  // ── Global event listeners ──────────────────────────────────────────────────
 
   useEffect(() => {
     const onResetZoom = () => {
@@ -522,9 +426,7 @@ const ticked = useCallback(() => {
       const initialScale = 0.8
       const tx = dimensionsRef.current.width / 2 * (1 - initialScale)
       const ty = dimensionsRef.current.height / 2 * (1 - initialScale)
-      svg
-        .transition()
-        .duration(200)
+      svg.transition().duration(200)
         .call(zoomBehaviorRef.current.transform as any, d3.zoomIdentity.translate(tx, ty).scale(initialScale))
     }
 
@@ -536,19 +438,15 @@ const ticked = useCallback(() => {
 
       const xs = graphNodesRef.current.map((n: any) => n.x ?? 0)
       const ys = graphNodesRef.current.map((n: any) => n.y ?? 0)
-      const minX = Math.min(...xs)
-      const maxX = Math.max(...xs)
-      const minY = Math.min(...ys)
-      const maxY = Math.max(...ys)
+      const minX = Math.min(...xs), maxX = Math.max(...xs)
+      const minY = Math.min(...ys), maxY = Math.max(...ys)
       const dx = Math.max(1, maxX - minX)
       const dy = Math.max(1, maxY - minY)
       const scale = Math.max(0.8, Math.min(2.5, 0.9 / Math.max(dx / w, dy / h)))
       const tx = w / 2 - ((minX + maxX) / 2) * scale
       const ty = h / 2 - ((minY + maxY) / 2) * scale
       const svg = d3.select<SVGSVGElement, unknown>(svgRef.current)
-      svg
-        .transition()
-        .duration(250)
+      svg.transition().duration(250)
         .call(zoomBehaviorRef.current.transform as any, d3.zoomIdentity.translate(tx, ty).scale(scale))
     }
 
@@ -575,8 +473,6 @@ const ticked = useCallback(() => {
         ref={svgRef}
         style={{ width: '100%', height: '100%', display: 'block', background: COLORS.OFFWHITE }}
       />
-
-      {/* Scoped dither overlay — affects graph pixels only */}
       <DitherOverlay position="absolute" zIndex={2} strategy="screen" />
     </div>
   )

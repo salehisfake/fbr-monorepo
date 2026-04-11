@@ -26,6 +26,7 @@ const SIM_PRESET_CONFIG: Record<SimPreset, { linkDistance: number; linkStrength:
 
 export function useGraphSimulation({ nodes, edges, width, height, onTick, simPreset }: Props) {
   const simulationRef = useRef<d3.Simulation<SimNode, SimEdge> | null>(null)
+  const forceXRef = useRef<d3.ForceX<SimNode> | null>(null)
 
   useEffect(() => {
     if (!width || !height || !nodes.length) return
@@ -33,6 +34,12 @@ export function useGraphSimulation({ nodes, edges, width, height, onTick, simPre
 
     const simNodes = nodes as SimNode[]
     const simEdges = edges as SimEdge[]
+
+    const forceX = d3.forceX<SimNode>(width / 2).strength((d) => {
+      if ((d as GraphNode).type === 'tag') return 0.055 + Math.min((d.weight ?? 1) * 0.002, 0.02)
+      return 0.095
+    })
+    forceXRef.current = forceX
 
     const sim = d3.forceSimulation<SimNode>(simNodes)
       .force('link',
@@ -46,12 +53,16 @@ export function useGraphSimulation({ nodes, edges, width, height, onTick, simPre
         d3.forceCollide<SimNode>()
           .radius((d) => getNodeSize(d.weight) / 2 + preset.collidePadding)
       )
-      .force('center', d3.forceCenter(width / 2, height / 2))
+      .force('x', forceX)
+      .force('y', d3.forceY<SimNode>(height / 2).strength(0.08))
       .on('tick', onTick as () => void)
 
     simulationRef.current = sim
-    return () => { sim.stop() }
+    return () => {
+      sim.stop()
+      forceXRef.current = null
+    }
   }, [nodes, edges, width, height, onTick, simPreset])
 
-  return simulationRef
+  return { simulationRef, forceXRef }
 }

@@ -6,7 +6,8 @@ import { createPortal } from 'react-dom'
 import type { LeafNode } from './useLayoutStore'
 import { useLayoutStore } from './useLayoutStore'
 import AppHost from './AppHost'
-import { COLORS } from '@/components/graph/graphConstants'
+import GlassSurface from '@/components/GlassSurface'
+import { COLORS, Z, DURATION } from '@/lib/tokens'
 
 /** Fine paper grain (small-scale texture). */
 const NOISE_FINE = `url("data:image/svg+xml,${encodeURIComponent(
@@ -56,32 +57,22 @@ export default function Window({
 }: WindowProps) {
   const panelVisible     = useLayoutStore((s) => s.panelVisible)
   const effectiveVisible = alwaysVisible || panelVisible
-  const [isCloseHovered, setIsCloseHovered] = useState(false)
-  const [closeTooltipPos, setCloseTooltipPos] = useState({ x: 0, y: 0 })
-
-  const borderColor = !effectiveVisible
-    ? 'transparent'
-    : isActive ?  'rgba(175, 175, 175, 0.29)' : COLORS.LIGHT
+  const [isCloseHovered, setIsCloseHovered]     = useState(false)
+  const [closeTooltipPos, setCloseTooltipPos]   = useState({ x: 0, y: 0 })
 
   // When zoom hides the panel, strip glass + blur — otherwise the frosted rect
   // stays on screen even though content opacity is 0.
   const glassOn = effectiveVisible
 
   return (
-    <div
+    <GlassSurface
+      active={glassOn}
+      glass='WINDOW'
+      shadow={true}
+      border={true}
+      insetOpacity={isActive ? 0.7 : 0.3}
+      style={{ width: '100%', height: '100%', overflow: 'hidden', boxSizing: 'border-box' }}
       onClick={onFocus}
-      style={{
-        position:             'relative',
-        width:                '100%',
-        height:               '100%',
-        background:           glassOn ? 'rgba(250, 250, 250, 0.85)' : 'transparent',
-        backdropFilter:       glassOn ? 'blur(8px)' : 'none',
-        WebkitBackdropFilter: glassOn ? 'blur(8px)' : 'none',
-        border:               `1px solid ${borderColor}`,
-        overflow:             'hidden',
-        boxSizing:            'border-box',
-        borderRadius:         '3px',
-      }}
     >
       {/* Paper-like texture stack on top of the glass — no warm tint */}
       <div
@@ -89,7 +80,7 @@ export default function Window({
         style={{
           position:       'absolute',
           inset:          0,
-          zIndex:         8,
+          zIndex:         Z.TEXTURE,
           opacity:        glassOn ? 0.18 : 0,
           backgroundImage: NOISE_COARSE,
           backgroundRepeat: 'repeat',
@@ -103,7 +94,7 @@ export default function Window({
         style={{
           position:       'absolute',
           inset:          0,
-          zIndex:         9,
+          zIndex:         Z.TEXTURE + 1,
           opacity:        glassOn ? 0.2 : 0,
           backgroundImage: NOISE_FINE,
           backgroundRepeat: 'repeat',
@@ -112,20 +103,7 @@ export default function Window({
           pointerEvents:    'none',
         }}
       />
-      <div
-        aria-hidden
-        style={{
-          position:       'absolute',
-          inset:          0,
-          zIndex:         9,
-          opacity:        glassOn ? 0.08 : 0,
-          backgroundImage: NOISE_FIBER,
-          backgroundRepeat: 'repeat',
-          backgroundSize:   '160px 56px',
-          mixBlendMode:     'multiply',
-          pointerEvents:    'none',
-        }}
-      />
+
       <button
         onClick={(e) => { e.stopPropagation(); onClose() }}
         onMouseEnter={() => setIsCloseHovered(true)}
@@ -135,7 +113,7 @@ export default function Window({
           position:       'absolute',
           top:            '16px',
           left:           '16px',
-          zIndex:         10,
+          zIndex:         Z.CHROME,
           width:          '12px',
           height:         '12px',
           display:        'flex',
@@ -165,7 +143,7 @@ export default function Window({
             display: 'block',
             transform: `scale(${iconScale})`,
             transformOrigin: 'center',
-            transition: 'transform 45ms linear',
+            transition: `transform ${DURATION.INSTANT} linear`,
             willChange: 'transform',
             backfaceVisibility: 'hidden',
           }}
@@ -203,7 +181,7 @@ export default function Window({
               position: 'fixed',
               left: closeTooltipPos.x,
               top: closeTooltipPos.y,
-              zIndex: 10050,
+              zIndex: Z.TOOLTIP,
               pointerEvents: 'none',
               fontFamily: 'var(--font-mplus), sans-serif',
               fontSize: 11,
@@ -223,7 +201,7 @@ export default function Window({
       <div
         style={{
           position:      'relative',
-          zIndex:        2,
+          zIndex:        Z.CONTENT,
           width:         '100%',
           height:        '100%',
           opacity:       effectiveVisible ? 1 : 0,
@@ -233,6 +211,6 @@ export default function Window({
       >
         <AppHost node={node} />
       </div>
-    </div>
+    </GlassSurface>
   )
 }
