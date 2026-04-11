@@ -3,7 +3,6 @@ title: Cuts n Cups
 description: A recurring event series pairing live music sessions with guided coffee tastings, held at FBR Cafe.
 tags:
   - recordings
-  - bookings
   - coffee
 pubDate: 2026-01-03
 ---

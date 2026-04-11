@@ -59,8 +59,8 @@ function removeLeaf(root: LayoutNode, id: string): LayoutNode | null {
 
 function updateLeafSlug(root: LayoutNode, id: string, slug: string): LayoutNode {
   if (root.type === 'leaf') {
-    if (root.id !== id) return root
-    return { ...root, appState: { ...(root.appState as AppState['post']), slug } }
+    if (root.id !== id || root.appType !== 'post') return root
+    return { ...root, appState: { slug } }
   }
   return {
     ...root,
@@ -103,9 +103,23 @@ function updateRatio(root: LayoutNode, splitId: string, ratio: number): LayoutNo
   }
 }
 
+/** Path for the graph home (no post window). Post slug `index` still uses `/posts/index`. */
+export function postPathFromSlug(slug: string): string {
+  if (slug === 'index') return '/'
+  return `/posts/${encodeURIComponent(slug)}`
+}
+
+export function parsePostPath(pathname: string): { kind: 'home' } | { kind: 'post'; slug: string } {
+  const trimmed = pathname.replace(/\/+$/, '') || '/'
+  if (trimmed === '/') return { kind: 'home' }
+  const m = /^\/posts\/([^/]+)$/.exec(trimmed)
+  if (!m) return { kind: 'home' }
+  return { kind: 'post', slug: decodeURIComponent(m[1]) }
+}
+
 function pushUrl(slug: string, replace = false) {
   if (typeof window === 'undefined') return
-  const url = slug === 'index' ? '/' : `/?p=${slug}`
+  const url = postPathFromSlug(slug)
   if (replace) window.history.replaceState({ slug }, '', url)
   else         window.history.pushState({ slug }, '', url)
 }
@@ -151,7 +165,7 @@ export interface LayoutStore {
 export const useLayoutStore = create<LayoutStore>((set) => ({
   root:             null,
   focusedId:        null,
-  panelVisible:     false,
+  panelVisible:     true,
   panelCollapsed:   false,
   mobileActivePage: 0,
 
