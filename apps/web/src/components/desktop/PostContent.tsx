@@ -6,10 +6,12 @@ import { usePost } from './usePost'
 import { MDXRemote } from 'next-mdx-remote'
 import ContactForm from '@/components/forms/ContactForm'
 import NewsletterForm from '@/components/forms/NewsletterForm'
+import PreorderCTA from '@/components/store/PreorderCTA'
 
 const mdxComponents = {
   ContactForm,
   NewsletterForm,
+  PreorderCTA,
 }
 
 export default function PostContent({ slug }: { slug: string }) {

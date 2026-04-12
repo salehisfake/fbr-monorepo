@@ -124,9 +124,9 @@
     },
     {
       "id": "mdot",
-      "label": "Mdot",
+      "label": "mDOT",
       "type": "entry",
-      "description": "TBA",
+      "description": "Preorder the mDOT device. A compact MIDI controller for producers and DJs who want direct hardware control without the bulk.",
       "url": "/posts/mdot",
       "weight": 6
     },

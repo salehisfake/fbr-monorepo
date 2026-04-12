@@ -1,76 +1,129 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { COLORS } from '@/components/graph/graphConstants'
 import GlassSurface from '@/components/GlassSurface'
 import FBRLogo from '@/components/FBRLogo'
-import { Z, LAYOUT } from '@/lib/tokens'
+import { useCartStore } from './useCartStore'
+import StoreFlyout from './StoreFlyout'
+import styles from './MenuBar.module.css'
 
-const BAR_HEIGHT = LAYOUT.MENUBAR_HEIGHT
+/** e.g. "Tue Apr 7     5:53 PM" — spaces preserved via .clock { white-space: pre } */
+function formatMenubarClock(value: Date): string {
+  const datePart = value
+    .toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    })
+    .replaceAll(',', '')
+  const timePart = value.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  })
+  return `${datePart}     ${timePart}`
+}
 
-function formatDateTime(value: Date): string {
-  const yyyy = value.getFullYear()
-  const mm = String(value.getMonth() + 1).padStart(2, '0')
-  const dd = String(value.getDate()).padStart(2, '0')
-  const hh = String(value.getHours()).padStart(2, '0')
-  const min = String(value.getMinutes()).padStart(2, '0')
-  return `${yyyy}-${mm}-${dd} ${hh}:${min}`
+function BagIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width='11'
+      height='11'
+      viewBox='0 0 24 24'
+      fill='none'
+      stroke='currentColor'
+      strokeWidth='2'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+      aria-hidden
+    >
+      <path d='M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z' />
+      <line x1='3' y1='6' x2='21' y2='6' />
+      <path d='M16 10a4 4 0 01-8 0' />
+    </svg>
+  )
 }
 
 export default function MenuBar() {
-  const rootRef = useRef<HTMLDivElement | null>(null)
-  const [nowLabel, setNowLabel] = useState(() => formatDateTime(new Date()))
+  const rootRef      = useRef<HTMLDivElement | null>(null)
+  const storeRef     = useRef<HTMLDivElement | null>(null)
+  const flyoutRef    = useRef<HTMLDivElement | null>(null)
+  const [nowLabel, setNowLabel] = useState(() => formatMenubarClock(new Date()))
 
+  const isOpen        = useCartStore((s) => s.isOpen)
+  const totalQuantity = useCartStore((s) => s.totalQuantity)
+  const openFlyout    = useCartStore((s) => s.openFlyout)
+  const closeFlyout   = useCartStore((s) => s.closeFlyout)
+  const hydrate       = useCartStore((s) => s.hydrate)
+
+  // Clock tick
   useEffect(() => {
-    const tick = () => setNowLabel(formatDateTime(new Date()))
+    const tick = () => setNowLabel(formatMenubarClock(new Date()))
     tick()
     const id = window.setInterval(tick, 60_000)
     return () => window.clearInterval(id)
   }, [])
 
+  // Restore cart from localStorage on mount
+  useEffect(() => {
+    hydrate()
+  }, [hydrate])
+
+  // Close flyout on outside click (flyout portaled to body — track both roots)
+  useEffect(() => {
+    if (!isOpen) return
+    function handleMouseDown(e: MouseEvent) {
+      const t = e.target as Node
+      if (storeRef.current?.contains(t)) return
+      if (flyoutRef.current?.contains(t)) return
+      closeFlyout()
+    }
+    document.addEventListener('mousedown', handleMouseDown)
+    return () => document.removeEventListener('mousedown', handleMouseDown)
+  }, [isOpen, closeFlyout])
+
+  function toggleFlyout() {
+    if (isOpen) closeFlyout()
+    else openFlyout()
+  }
+
   return (
     <GlassSurface
       ref={rootRef}
       glass='MENUBAR'
+      className={styles.bar}
       style={{
         position: 'fixed',
-        top: 0, left: 0, right: 0,
-        height: BAR_HEIGHT,
-        zIndex: Z.MENUBAR,
-        display: 'flex',
-        alignItems: 'center',
-        padding: '0 8px',
+        top: 0,
+        left: 0,
+        right: 0,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 6px', marginRight: 10 }}>
-        <FBRLogo color={COLORS.BLACK} />
-        <span
-          style={{
-            fontFamily: 'var(--font-mplus), sans-serif',
-            fontSize: 11,
-            fontWeight: 500,
-            color: COLORS.BLACK,
-          }}
-        >
-          FBR dex
-        </span>
+      <div className={styles.brandRow}>
+        <FBRLogo />
+        <span className={styles.brandTitle}>FBR dex</span>
       </div>
-      <div
-        style={{
-          position: 'absolute',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          fontFamily: 'var(--font-mplus), sans-serif',
-          fontSize: 11,
-          color: COLORS.MID,
-          letterSpacing: '0.02em',
-          userSelect: 'none',
-          pointerEvents: 'none',
-        }}
-      >
-        {nowLabel}
+
+      <div className={styles.clock}>{nowLabel}</div>
+
+      <div className={styles.storeRegion}>
+        <div ref={storeRef}>
+          <button
+            type='button'
+            onClick={toggleFlyout}
+            aria-label='Store'
+            className={`${styles.storeButton} ${isOpen ? styles.storeButtonOpen : ''}`}
+          >
+            <BagIcon className={styles.bagIcon} />
+            {totalQuantity > 0 && (
+              <span className={styles.cartQty}>{totalQuantity}</span>
+            )}
+          </button>
+        </div>
+
+        {isOpen && <StoreFlyout ref={flyoutRef} onClose={closeFlyout} />}
       </div>
     </GlassSurface>
   )
 }
-

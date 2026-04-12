@@ -34,6 +34,8 @@ export const GLASS = {
   WINDOW:   { bg: 'rgba(255, 255, 255, 0.9)', blur: 'blur(12px)'  },
   MENUBAR:  { bg: 'rgba(255,255,255,0.6)',  blur: 'blur(4px)'  },
   DROPDOWN: { bg: 'rgba(250,250,250,0.9)',  blur: 'blur(12px)' },
+  /** Menubar store flyout — portaled to body so backdrop samples the graph; needs lower fill + stronger blur to read */
+  STORE_FLYOUT: { bg: 'rgba(250,250,250,0.62)', blur: 'blur(18px) saturate(1.1)' },
   DOTS:     { bg: 'rgba(255,255,255,0.7)',  blur: 'blur(8px)'  },
 }
 
@@ -79,6 +81,9 @@ export const DURATION = {
   SLOW:       '250ms',  // zoom-to-fit
   FILM_GRAIN: '420ms',  // film grain shift cycle
   ORB_RIPPLE: '3.8s',   // graph node ripple animation
+  WINDOW_IN:  '220ms',  // window spawn spring
+  WINDOW_OUT: '140ms',  // window close collapse — keep in sync with Window.tsx setTimeout
+  STRIP_PAN:  '280ms',  // viewOffset translate (strip camera move)
 }
 
 // ── Responsive breakpoints (px) ───────────────────────────────────────────────
@@ -98,5 +103,11 @@ export const INTERACTIVE = {
 
 export const LAYOUT = {
   MENUBAR_HEIGHT: 24,
-  WINDOW_GAP:     0,   // padding around window panel
+  /** Inset around the desktop window strip (px). Mobile: padding inside each window carousel page. */
+  WINDOW_GAP:     12,
+  /**
+   * Horizontal gap between adjacent desktop window panes (px).
+   * Two panes + one gutter span `100vw - 2 * WINDOW_GAP`.
+   */
+  WINDOW_GUTTER:  12,
 }

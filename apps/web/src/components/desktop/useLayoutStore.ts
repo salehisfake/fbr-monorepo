@@ -2,7 +2,6 @@
 import { create } from 'zustand'
 
 // ── App types & state ─────────────────────────────────────────────────────────
-// Extend AppType and AppState when adding new app types.
 
 export type AppType = 'post'
 
@@ -10,100 +9,22 @@ export interface AppState {
   post: { slug: string }
 }
 
-// ── Layout tree nodes ─────────────────────────────────────────────────────────
+// ── Window item ───────────────────────────────────────────────────────────────
 
-// Discriminated union — each leaf carries its own appType + matching appState.
-export type LeafNode = {
-  [K in AppType]: {
-    id: string
-    type: 'leaf'
-    appType: K
-    appState: AppState[K]
-  }
-}[AppType]
-
-export interface SplitNode {
-  id: string
-  type: 'split'
-  /** 'h' = side-by-side columns, 'v' = stacked rows */
-  direction: 'h' | 'v'
-  /** Fraction of space allocated to `first` child (0–1). */
-  ratio: number
-  first: LayoutNode
-  second: LayoutNode
+export interface WindowItem {
+  id:       string
+  appType:  AppType
+  appState: AppState[AppType]
 }
 
-export type LayoutNode = SplitNode | LeafNode
+// ── Constants ─────────────────────────────────────────────────────────────────
 
-// ── Tree helpers (exported so components can use them) ────────────────────────
+const MAX_WINDOWS     = 6
+const DESKTOP_VISIBLE = 2  // slots shown side-by-side on desktop
 
-export function getLeaves(node: LayoutNode | null): LeafNode[] {
-  if (!node) return []
-  if (node.type === 'leaf') return [node]
-  return [...getLeaves(node.first), ...getLeaves(node.second)]
-}
+// ── URL helpers ───────────────────────────────────────────────────────────────
 
-function getDepth(node: LayoutNode): number {
-  if (node.type === 'leaf') return 0
-  return 1 + Math.max(getDepth(node.first), getDepth(node.second))
-}
-
-function removeLeaf(root: LayoutNode, id: string): LayoutNode | null {
-  if (root.type === 'leaf') return root.id === id ? null : root
-  const newFirst  = removeLeaf(root.first,  id)
-  const newSecond = removeLeaf(root.second, id)
-  if (newFirst  === null) return newSecond
-  if (newSecond === null) return newFirst
-  return { ...root, first: newFirst, second: newSecond }
-}
-
-function updateLeafSlug(root: LayoutNode, id: string, slug: string): LayoutNode {
-  if (root.type === 'leaf') {
-    if (root.id !== id || root.appType !== 'post') return root
-    return { ...root, appState: { slug } }
-  }
-  return {
-    ...root,
-    first:  updateLeafSlug(root.first,  id, slug),
-    second: updateLeafSlug(root.second, id, slug),
-  }
-}
-
-function wrapLeafInSplit(
-  root: LayoutNode,
-  leafId: string,
-  newLeaf: LeafNode,
-  direction: 'h' | 'v',
-): LayoutNode {
-  if (root.type === 'leaf') {
-    if (root.id !== leafId) return root
-    return {
-      id: crypto.randomUUID(),
-      type: 'split',
-      direction,
-      ratio: 0.5,
-      first:  root,
-      second: newLeaf,
-    }
-  }
-  return {
-    ...root,
-    first:  wrapLeafInSplit(root.first,  leafId, newLeaf, direction),
-    second: wrapLeafInSplit(root.second, leafId, newLeaf, direction),
-  }
-}
-
-function updateRatio(root: LayoutNode, splitId: string, ratio: number): LayoutNode {
-  if (root.type === 'leaf') return root
-  if (root.id === splitId) return { ...root, ratio }
-  return {
-    ...root,
-    first:  updateRatio(root.first,  splitId, ratio),
-    second: updateRatio(root.second, splitId, ratio),
-  }
-}
-
-/** Path for the graph home (no post window). Post slug `index` still uses `/posts/index`. */
+/** Path for graph home (no post window). Slug `index` maps to `/`. */
 export function postPathFromSlug(slug: string): string {
   if (slug === 'index') return '/'
   return `/posts/${encodeURIComponent(slug)}`
@@ -126,135 +47,185 @@ function pushUrl(slug: string, replace = false) {
 
 // ── Selector helpers ──────────────────────────────────────────────────────────
 
-export function getFocusedLeaf(state: LayoutStore): LeafNode | null {
-  const leaves = getLeaves(state.root)
-  return leaves.find(l => l.id === state.focusedId) ?? null
+/**
+ * Slug for URL / graph context. When `focusedId` is null but windows exist, user is on
+ * the trailing graph slot — use the last window's slug for continuity (no URL push on tail alone).
+ */
+export function getFocusedSlug(state: LayoutStore): string {
+  if (state.focusedId) {
+    const w = state.windows.find(w => w.id === state.focusedId)
+    if (w) return (w.appState as AppState['post']).slug
+  }
+  const last = state.windows[state.windows.length - 1]
+  if (last) return (last.appState as AppState['post']).slug
+  return 'index'
 }
 
-export function getFocusedSlug(state: LayoutStore): string {
-  const leaf = getFocusedLeaf(state)
-  if (!leaf) return 'index'
-  return (leaf.appState as AppState['post']).slug
+// ── Slot model: windows[0..n-1] + one trailing graph slot at index n ─────────
+
+function slotCount(windowsLen: number): number {
+  if (windowsLen === 0) return 0
+  return windowsLen + 1
+}
+
+function clampOffset(offset: number, windowsLen: number): number {
+  const sc = slotCount(windowsLen)
+  if (sc <= DESKTOP_VISIBLE) return 0
+  return Math.max(0, Math.min(offset, sc - DESKTOP_VISIBLE))
+}
+
+/** Pan so slot `slotIndex` sits on the right of the visible pair (when possible). */
+function offsetForRightSlot(slotIndex: number, windowsLen: number): number {
+  return clampOffset(slotIndex - (DESKTOP_VISIBLE - 1), windowsLen)
+}
+
+// ── Store interface ───────────────────────────────────────────────────────────
+
+export interface LayoutStore {
+  windows:          WindowItem[]
+  /**
+   * Active window id, or `null` when the trailing graph slot is focused (desktop: interact
+   * with graph in that pane; `openPost` appends a window).
+   */
+  focusedId:        string | null
+  /** Index of the left-most visible slot on desktop (each slot is a window or the graph tail). */
+  viewOffset:       number
+  /** Driven by DexGraph zoom — true once past the label zoom threshold. */
+  panelVisible:     boolean
+  /** Manual hide/show toggle for the entire panel strip. */
+  panelCollapsed:   boolean
+  /** Mobile only: which carousel page is visible (0 = graph, 1+ = window index+1). */
+  mobileActivePage: number
+
+  openPost(slug: string, options?: { replace?: boolean; skipPushState?: boolean }): void
+  openBeside(slug: string): void
+  closeWindow(id: string):  void
+  focusWindow(id: string):  void
+  /** Focus the trailing graph slot (after all windows). No-op if no windows. */
+  focusGraphTail: () => void
+  /** Desktop: previous/next slot (windows + graph tail at end, wraps). */
+  focusAdjacentWindow(delta: -1 | 1): void
+  setViewOffset(offset: number): void
+  setPanelVisible(visible: boolean):      void
+  setPanelCollapsed(collapsed: boolean):  void
+  setMobileActivePage(page: number):      void
 }
 
 // ── Store ─────────────────────────────────────────────────────────────────────
 
-export interface LayoutStore {
-  root:             LayoutNode | null
-  focusedId:        string | null
-  /** Driven by DexGraph zoom — true once past the label zoom threshold. */
-  panelVisible:     boolean
-  /** Manual hide/show toggle for the entire panel area. */
-  panelCollapsed:   boolean
-  /** Mobile only: which carousel page is visible (0 = graph, 1+ = leaf index+1). */
-  mobileActivePage: number
-
-  openPost: (
-    slug: string,
-    options?: { replace?: boolean; skipPushState?: boolean }
-  ) => void
-  splitOpen:          (slug: string, direction?: 'h' | 'v') => void
-  closeWindow:        (id: string) => void
-  focusWindow:        (id: string) => void
-  setRatio:           (splitId: string, ratio: number) => void
-  setPanelVisible:    (visible: boolean) => void
-  setPanelCollapsed:  (collapsed: boolean) => void
-  setMobileActivePage:(page: number) => void
-}
-
-export const useLayoutStore = create<LayoutStore>((set) => ({
-  root:             null,
+export const useLayoutStore = create<LayoutStore>((set, get) => ({
+  windows:          [],
   focusedId:        null,
+  viewOffset:       0,
   panelVisible:     true,
   panelCollapsed:   false,
   mobileActivePage: 0,
 
   // ── openPost ───────────────────────────────────────────────────────────────
-  // Regular click: replace the focused leaf's content, or create the first leaf.
 
   openPost: (slug, options) => {
     set((state) => {
-      if (!state.root) {
-        const leaf: LeafNode = {
-          id: crypto.randomUUID(), type: 'leaf', appType: 'post', appState: { slug },
+      if (state.windows.length === 0) {
+        const w: WindowItem = {
+          id: crypto.randomUUID(), appType: 'post', appState: { slug },
         }
         if (!options?.skipPushState) pushUrl(slug, options?.replace)
-        return { root: leaf, focusedId: leaf.id, mobileActivePage: 1 }
+        return { windows: [w], focusedId: w.id, viewOffset: 0, mobileActivePage: 1 }
       }
 
-      const targetId = state.focusedId ?? getLeaves(state.root)[0]?.id
-      if (!targetId) return state
+      // Trailing graph slot focused → append a new window (before the implicit tail).
+      if (state.focusedId === null) {
+        if (state.windows.length >= MAX_WINDOWS) return state
+        const newW: WindowItem = {
+          id: crypto.randomUUID(), appType: 'post', appState: { slug },
+        }
+        const newWindows = [...state.windows, newW]
+        const insertIdx = newWindows.length - 1
+        if (!options?.skipPushState) pushUrl(slug, options?.replace)
+        return {
+          windows:          newWindows,
+          focusedId:        newW.id,
+          viewOffset:       offsetForRightSlot(insertIdx, newWindows.length),
+          mobileActivePage: newWindows.length,
+        }
+      }
 
-      const newRoot  = updateLeafSlug(state.root, targetId, slug)
-      const leaves   = getLeaves(newRoot)
-      const leafIdx  = leaves.findIndex(l => l.id === targetId)
-      const mobilePage = leafIdx >= 0 ? leafIdx + 1 : state.mobileActivePage
+      const targetId   = state.focusedId
+      const targetIdx  = state.windows.findIndex(w => w.id === targetId)
+      const newWindows = state.windows.map(w =>
+        w.id === targetId ? { ...w, appState: { slug } } : w,
+      )
 
       if (!options?.skipPushState) pushUrl(slug, options?.replace)
-      return { root: newRoot, focusedId: targetId, mobileActivePage: mobilePage }
+      const mobilePage = targetIdx >= 0 ? targetIdx + 1 : state.mobileActivePage
+      return { windows: newWindows, focusedId: targetId, mobileActivePage: mobilePage }
     })
   },
 
-  // ── splitOpen ─────────────────────────────────────────────────────────────
-  // Shift+click: wrap focused leaf in a SplitNode, new leaf becomes second child.
-  // Capped at depth 3 to prevent unusably small panes.
+  // ── openBeside ────────────────────────────────────────────────────────────
 
-  splitOpen: (slug, direction = 'h') => {
+  openBeside: (slug) => {
     set((state) => {
-      const newLeaf: LeafNode = {
-        id: crypto.randomUUID(), type: 'leaf', appType: 'post', appState: { slug },
-      }
-      if (!state.root) {
-        pushUrl(slug)
-        return { root: newLeaf, focusedId: newLeaf.id, mobileActivePage: 1 }
-      }
-      if (getDepth(state.root) >= 3) return state  // depth cap
+      if (state.windows.length >= MAX_WINDOWS) return state
 
-      const targetId = state.focusedId ?? getLeaves(state.root)[0]?.id
-      if (!targetId) return state
+      const focusedIdx = state.focusedId
+        ? state.windows.findIndex(w => w.id === state.focusedId)
+        : -1
+      const insertIdx = focusedIdx >= 0 ? focusedIdx + 1 : state.windows.length
 
-      const newRoot    = wrapLeafInSplit(state.root, targetId, newLeaf, direction)
-      const newLeaves  = getLeaves(newRoot)
-      const mobilePage = newLeaves.length  // new leaf is last → page = count
+      const newWindow: WindowItem = {
+        id: crypto.randomUUID(), appType: 'post', appState: { slug },
+      }
+      const newWindows = [
+        ...state.windows.slice(0, insertIdx),
+        newWindow,
+        ...state.windows.slice(insertIdx),
+      ]
 
       pushUrl(slug)
-      return { root: newRoot, focusedId: newLeaf.id, mobileActivePage: mobilePage }
+
+      return {
+        windows:          newWindows,
+        focusedId:        newWindow.id,
+        viewOffset:       offsetForRightSlot(insertIdx, newWindows.length),
+        mobileActivePage: insertIdx + 1,
+      }
     })
   },
 
   // ── closeWindow ───────────────────────────────────────────────────────────
-  // Remove leaf, promote sibling if parent split becomes single-child.
 
   closeWindow: (id) => {
     set((state) => {
-      if (!state.root) return state
+      const idx = state.windows.findIndex(w => w.id === id)
+      if (idx === -1) return state
 
-      const newRoot   = removeLeaf(state.root, id)
-      const newLeaves = getLeaves(newRoot)
+      const newWindows = state.windows.filter(w => w.id !== id)
 
-      let newFocusedId:    string | null = null
-      let newMobilePage    = state.mobileActivePage
+      let newFocusedId = state.focusedId
+      if (state.focusedId === id) {
+        const newIdx     = Math.min(idx, newWindows.length - 1)
+        newFocusedId     = newWindows[newIdx]?.id ?? null
+      }
 
-      if (newRoot) {
-        if (state.focusedId && state.focusedId !== id) {
-          newFocusedId = state.focusedId
-          const idx = newLeaves.findIndex(l => l.id === newFocusedId)
-          newMobilePage = idx >= 0 ? idx + 1 : 1
-        } else {
-          newFocusedId = newLeaves[0]?.id ?? null
-          newMobilePage = newFocusedId ? 1 : 0
-        }
-        // Cap page to valid range
-        newMobilePage = Math.min(newMobilePage, newLeaves.length)
+      const newViewOffset  = clampOffset(state.viewOffset, newWindows.length)
+      const newMobilePage  = newFocusedId
+        ? newWindows.findIndex(w => w.id === newFocusedId) + 1
+        : 0
 
-        const focusedLeaf = newLeaves.find(l => l.id === newFocusedId)
-        if (focusedLeaf) pushUrl((focusedLeaf.appState as AppState['post']).slug)
-      } else {
-        newMobilePage = 0
+      if (newFocusedId) {
+        const focused = newWindows.find(w => w.id === newFocusedId)
+        if (focused) pushUrl((focused.appState as AppState['post']).slug)
+      } else if (newWindows.length === 0) {
         pushUrl('index')
       }
 
-      return { root: newRoot, focusedId: newFocusedId, mobileActivePage: newMobilePage }
+      return {
+        windows:          newWindows,
+        focusedId:        newFocusedId,
+        viewOffset:       newViewOffset,
+        mobileActivePage: newMobilePage,
+      }
     })
   },
 
@@ -262,25 +233,57 @@ export const useLayoutStore = create<LayoutStore>((set) => ({
 
   focusWindow: (id) => {
     set((state) => {
-      const leaves  = getLeaves(state.root)
-      const leaf    = leaves.find(l => l.id === id)
-      const leafIdx = leaves.findIndex(l => l.id === id)
-      const mobilePage = leafIdx >= 0 ? leafIdx + 1 : state.mobileActivePage
+      const idx = state.windows.findIndex(w => w.id === id)
+      if (idx === -1) return state
 
-      if (leaf) pushUrl((leaf.appState as AppState['post']).slug)
-      return { focusedId: id, mobileActivePage: mobilePage }
+      const w = state.windows[idx]
+      pushUrl((w.appState as AppState['post']).slug)
+
+      const alreadyVisible = idx >= state.viewOffset && idx < state.viewOffset + DESKTOP_VISIBLE
+      const newViewOffset  = alreadyVisible
+        ? state.viewOffset
+        : offsetForRightSlot(idx, state.windows.length)
+
+      return {
+        focusedId:        id,
+        viewOffset:       newViewOffset,
+        mobileActivePage: idx + 1,
+      }
     })
   },
 
-  // ── setRatio ──────────────────────────────────────────────────────────────
-
-  setRatio: (splitId, ratio) => {
+  focusGraphTail: () => {
     set((state) => {
-      if (!state.root) return state
-      return { root: updateRatio(state.root, splitId, ratio) }
+      if (state.windows.length === 0) return state
+      const n = state.windows.length
+      return {
+        focusedId:        null,
+        viewOffset:       offsetForRightSlot(n, n),
+        mobileActivePage: 0,
+      }
     })
   },
 
+  focusAdjacentWindow: (delta) => {
+    const { windows, focusedId, focusWindow, focusGraphTail } = get()
+    if (windows.length === 0) return
+    const n = windows.length
+    let slot: number
+    if (focusedId === null) {
+      slot = n
+    } else {
+      const idx = windows.findIndex(w => w.id === focusedId)
+      slot = idx >= 0 ? idx : 0
+    }
+    const newSlot = (slot + delta + (n + 1)) % (n + 1)
+    if (newSlot < n) {
+      focusWindow(windows[newSlot].id)
+    } else {
+      focusGraphTail()
+    }
+  },
+
+  setViewOffset:       (offset) => set((state) => ({ viewOffset: clampOffset(offset, state.windows.length) })),
   setPanelVisible:     (visible)   => set({ panelVisible: visible }),
   setPanelCollapsed:   (collapsed) => set({ panelCollapsed: collapsed }),
   setMobileActivePage: (page)      => set({ mobileActivePage: page }),

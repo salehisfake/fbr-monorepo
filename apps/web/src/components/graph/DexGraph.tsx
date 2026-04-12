@@ -8,9 +8,8 @@ import { getNodeStyle, appendShape } from './graphUtils'
 import { COLORS } from './graphConstants'
 import { DURATION } from '@/lib/tokens'
 import type { GraphData, GraphNode, GraphEdge } from '@/lib/graph'
-import { useLayoutStore, getFocusedSlug, getLeaves } from '@/components/desktop/useLayoutStore'
+import { useLayoutStore, getFocusedSlug } from '@/components/desktop/useLayoutStore'
 import { useMenuStore } from '@/components/desktop/useMenuStore'
-import DitherOverlay from '@/components/DitherOverlay'
 
 /** Below this zoom scale, all labels stay hidden. */
 const LABEL_ZOOM_THRESHOLD = 1.0
@@ -61,9 +60,9 @@ export default function DexGraph({ enableWindowOffset = true }: DexGraphProps) {
   const [dimensions,  setDimensions]  = useState({ width: 0, height: 0 })
   const zoomScaleRef     = useRef(1)
   const openPost         = useLayoutStore((s) => s.openPost)
-  const splitOpen        = useLayoutStore((s) => s.splitOpen)
+  const openBeside       = useLayoutStore((s) => s.openBeside)
   const focusedId        = useLayoutStore((s) => s.focusedId)
-  const windowCount      = useLayoutStore((s) => getLeaves(s.root).length)
+  const windowCount      = useLayoutStore((s) => s.windows.length)
   const activeSlug       = useLayoutStore(getFocusedSlug)
   const simPreset        = useMenuStore((s) => s.simPreset)
   const showDebugOverlay = useMenuStore((s) => s.showDebugOverlay)
@@ -350,7 +349,7 @@ export default function DexGraph({ enableWindowOffset = true }: DexGraphProps) {
       .on('click', (event, d) => {
         if (d.url) {
           if ((event as MouseEvent).shiftKey) {
-            splitOpen(d.id)
+            openBeside(d.id)
           } else {
             openPost(d.id)
           }
@@ -473,7 +472,6 @@ export default function DexGraph({ enableWindowOffset = true }: DexGraphProps) {
         ref={svgRef}
         style={{ width: '100%', height: '100%', display: 'block', background: COLORS.OFFWHITE }}
       />
-      <DitherOverlay position="absolute" zIndex={2} strategy="screen" />
     </div>
   )
 }

@@ -139,15 +139,53 @@
   border-radius: 3px;
 }
 
-/* Lists */
+/* Lists — ul: subtle en-dash markers; ol: clean decimal, outside position */
 .postContent ul,
 .postContent ol {
-  margin: 0.75rem 0;
-  padding-left: 2rem;
+  margin: 0.85rem 0;
 }
 
-.postContent li {
-  margin: 0.25rem 0;
+.postContent ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.postContent ul > li {
+  position: relative;
+  padding-left: 1.2rem;
+  margin: 0.35rem 0;
+}
+
+.postContent ul > li::before {
+  content: '\2013';
+  position: absolute;
+  left: 0;
+  top: 0.05em;
+  color: #a1a1aa;
+  font-family: var(--font-mplus), sans-serif;
+  font-size: 0.95em;
+}
+
+.postContent ul ul {
+  margin: 0.4rem 0 0.15rem;
+  padding-left: 0.65rem;
+}
+
+.postContent ol {
+  list-style: decimal;
+  list-style-position: outside;
+  padding-left: 1.35rem;
+}
+
+.postContent ol > li {
+  margin: 0.35rem 0;
+  padding-left: 0.4rem;
+}
+
+.postContent ol ol {
+  list-style: lower-alpha;
+  margin: 0.4rem 0 0.15rem;
+  padding-left: 1.1rem;
 }
 
 /* Blockquotes */
@@ -244,6 +282,7 @@
   font-size: 16px;
   letter-spacing: 0.01em;
   color: #3f3f46;
+  text-align: center;
 }
 
 .postContent :global(.formSubheading) {
@@ -252,6 +291,7 @@
   font-size: 13px;
   line-height: 1.6;
   color: #52525c;
+  text-align: center;
 }
 
 .postContent :global(.formRow) {
@@ -323,6 +363,7 @@
   font-size: 11px;
   letter-spacing: 0.02em;
   color: #71717b;
+  text-align: center;
 }
 
 .postContent :global(.formSubmit) {

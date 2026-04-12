@@ -1,0 +1,81 @@
+/*
+ * Mirrors @/lib/tokens where noted:
+ *   BLACK #3f3f46   MID #71717b
+ *   MENUBAR height 24px   Z.MENUBAR 9995
+ * Transition 120ms = DURATION.FAST
+ */
+
+.bar {
+  height: 24px;
+  z-index: 9995;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  box-sizing: border-box;
+  font-weight: 600;
+  font-size: 10px;
+  color: #3f3f46;
+}
+
+.brandRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 6px;
+  margin-right: 10px;
+}
+
+.brandTitle {
+  font-family: var(--font-mplus), sans-serif;
+}
+
+.clock {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-mplus), sans-serif;
+  user-select: none;
+  pointer-events: none;
+  white-space: pre;
+}
+
+@media (max-width: 767px) {
+  .clock {
+    display: none;
+  }
+}
+
+.storeRegion {
+  margin-left: auto;
+  position: relative;
+}
+
+.storeButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0 6px;
+  height: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #71717b;
+  transition: color 120ms ease;
+}
+
+.storeButtonOpen {
+  color: #3f3f46;
+}
+
+.cartQty {
+  font-family: var(--font-mplus), sans-serif;
+  font-size: 10px;
+  line-height: 1;
+  color: #3f3f46;
+}
+
+.bagIcon {
+  display: block;
+  flex-shrink: 0;
+}

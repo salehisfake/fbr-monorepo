@@ -1,29 +1,32 @@
 'use client'
 
 import GlassSurface from '@/components/GlassSurface'
-import { useLayoutStore, getLeaves } from './useLayoutStore'
+import { useLayoutStore } from './useLayoutStore'
 import { COLORS, Z, DURATION } from '@/lib/tokens'
 
 /**
  * Dot indicator shown on mobile.
- * Dot 0 = graph, dots 1..N = each open window (leaf).
+ * Dot 0 = graph, dots 1..N = each open window.
  * Active dot expands into a pill; tapping navigates to that page.
  */
 export default function CarouselDots() {
-  const root                = useLayoutStore((s) => s.root)
-  const mobileActivePage    = useLayoutStore((s) => s.mobileActivePage)
+  const windows          = useLayoutStore((s) => s.windows)
+  const mobileActivePage = useLayoutStore((s) => s.mobileActivePage)
   const setMobileActivePage = useLayoutStore((s) => s.setMobileActivePage)
-  const focusWindow         = useLayoutStore((s) => s.focusWindow)
+  const focusWindow       = useLayoutStore((s) => s.focusWindow)
+  const focusGraphTail    = useLayoutStore((s) => s.focusGraphTail)
 
-  const leaves    = getLeaves(root)
-  const totalDots = 1 + leaves.length
+  const totalDots = 1 + windows.length
 
   const handleDotClick = (pageIndex: number) => {
-    setMobileActivePage(pageIndex)
-    if (pageIndex > 0) {
-      const leaf = leaves[pageIndex - 1]
-      if (leaf) focusWindow(leaf.id)
+    if (pageIndex === 0) {
+      if (windows.length > 0) focusGraphTail()
+      else setMobileActivePage(0)
+      return
     }
+    setMobileActivePage(pageIndex)
+    const w = windows[pageIndex - 1]
+    if (w) focusWindow(w.id)
   }
 
   return (
@@ -32,15 +35,15 @@ export default function CarouselDots() {
       role='tablist'
       aria-label='Switch view'
       style={{
-        position:  'fixed',
-        bottom:    '24px',
-        left:      '50%',
-        transform: 'translateX(-50%)',
-        display:   'flex',
+        position:   'fixed',
+        bottom:     '24px',
+        left:       '50%',
+        transform:  'translateX(-50%)',
+        display:    'flex',
         alignItems: 'center',
-        gap:       '10px',
-        zIndex:    Z.CAROUSEL,
-        padding:   '12px 18px',
+        gap:        '10px',
+        zIndex:     Z.CAROUSEL,
+        padding:    '12px 18px',
       }}
     >
       {Array.from({ length: totalDots }, (_, i) => {
