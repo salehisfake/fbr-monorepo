@@ -1,0 +1,14 @@
+.metaText {
+  font-family: var(--font-mplus), sans-serif;
+  font-size: 11px;
+  color: var(--fbr-zinc-500);
+  letter-spacing: 0;
+}
+
+.capsMetaText {
+  font-family: var(--font-mplus), sans-serif;
+  font-size: 10px;
+  color: var(--fbr-zinc-400);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}

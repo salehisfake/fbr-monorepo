@@ -8,9 +8,10 @@ import { getNodeStyle, appendShape } from './graphUtils'
 import { COLORS } from './graphConstants'
 import { DURATION } from '@/lib/tokens'
 import type { GraphData, GraphNode, GraphEdge } from '@/lib/graph'
-import { useLayoutStore, getFocusedSlug, getLeaves } from '@/components/desktop/useLayoutStore'
+import { formatTagDisplay } from '@/lib/formatTagDisplay'
+import { slugifyTag } from '@/lib/tagSlug'
+import { useLayoutStore, getFocusedGraphNodeId } from '@/components/desktop/useLayoutStore'
 import { useMenuStore } from '@/components/desktop/useMenuStore'
-import DitherOverlay from '@/components/DitherOverlay'
 
 /** Below this zoom scale, all labels stay hidden. */
 const LABEL_ZOOM_THRESHOLD = 1.0
@@ -39,6 +40,17 @@ function randomDurationSeconds(baseSec: number, nodeId: string): string {
   return `${(baseSec * m * LABEL_REVEAL_SPEED_MULTIPLIER).toFixed(3)}s`
 }
 
+/** Resolves link endpoint ids after d3-force may have replaced string refs with node objects. */
+function edgeEndpointIds(d: { source: unknown; target: unknown }): { sid: string; tid: string } {
+  const sid = typeof d.source === 'object' && d.source !== null && 'id' in d.source
+    ? String((d.source as GraphNode).id)
+    : String(d.source)
+  const tid = typeof d.target === 'object' && d.target !== null && 'id' in d.target
+    ? String((d.target as GraphNode).id)
+    : String(d.target)
+  return { sid, tid }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface DexGraphProps {
@@ -61,10 +73,12 @@ export default function DexGraph({ enableWindowOffset = true }: DexGraphProps) {
   const [dimensions,  setDimensions]  = useState({ width: 0, height: 0 })
   const zoomScaleRef     = useRef(1)
   const openPost         = useLayoutStore((s) => s.openPost)
-  const splitOpen        = useLayoutStore((s) => s.splitOpen)
+  const openTag          = useLayoutStore((s) => s.openTag)
+  const openBeside       = useLayoutStore((s) => s.openBeside)
+  const openBesideTag    = useLayoutStore((s) => s.openBesideTag)
   const focusedId        = useLayoutStore((s) => s.focusedId)
-  const windowCount      = useLayoutStore((s) => getLeaves(s.root).length)
-  const activeSlug       = useLayoutStore(getFocusedSlug)
+  const windowCount      = useLayoutStore((s) => s.windows.length)
+  const activeSlug       = useLayoutStore(getFocusedGraphNodeId)
   const simPreset        = useMenuStore((s) => s.simPreset)
   const showDebugOverlay = useMenuStore((s) => s.showDebugOverlay)
   const activeSlugRef    = useRef<string | null>(focusedId ? activeSlug : null)
@@ -80,6 +94,7 @@ export default function DexGraph({ enableWindowOffset = true }: DexGraphProps) {
   const lastSettledTargetRef = useRef<number | null>(null)
   const settleTimerRef     = useRef<number | null>(null)
   const impulseTimerRef    = useRef<number | null>(null)
+  const hoveredNodeIdRef   = useRef<string | null>(null)
 
   // ── Sync refs ───────────────────────────────────────────────────────────────
 
@@ -117,6 +132,58 @@ export default function DexGraph({ enableWindowOffset = true }: DexGraphProps) {
     }
   }, [])
 
+  const refreshLinkStyles = useCallback(() => {
+    const links = linkRef.current
+    if (!links) return
+    const focusSlug = focusedId ? activeSlug : null
+    const hoverId = hoveredNodeIdRef.current
+
+    links.each(function (this: SVGLineElement, d: GraphEdge) {
+      const line = d3.select<SVGLineElement, GraphEdge>(this)
+      const { sid, tid } = edgeEndpointIds(d as { source: unknown; target: unknown })
+
+      const touchesFocus = !!(focusSlug && (sid === focusSlug || tid === focusSlug))
+      const touchesHover = !!(hoverId && (sid === hoverId || tid === hoverId))
+
+      line
+        .classed('graph-link-focus', false)
+        .classed('graph-link-focus--to-target', false)
+        .classed('graph-link-focus--to-source', false)
+
+      if (touchesHover) {
+        line
+          .attr('stroke', COLORS.MID)
+          .attr('stroke-width', 0.5)
+          .attr('stroke-dasharray', 'none')
+          .attr('stroke-opacity', 0.7)
+          .style('animation', 'none')
+        return
+      }
+
+      if (touchesFocus) {
+        const towardTarget = tid === focusSlug
+        const towardSource = sid === focusSlug && tid !== focusSlug
+        line
+          .classed('graph-link-focus', true)
+          .classed('graph-link-focus--to-target', towardTarget || sid === tid)
+          .classed('graph-link-focus--to-source', towardSource)
+        line
+          .attr('stroke', null)
+          .attr('stroke-dasharray', null)
+          .attr('stroke-width', null)
+          .style('animation', null)
+        return
+      }
+
+      line
+        .attr('stroke', COLORS.LIGHT)
+        .attr('stroke-width', 0.5)
+        .attr('stroke-dasharray', 'none')
+        .attr('stroke-opacity', 0.7)
+        .style('animation', 'none')
+    })
+  }, [focusedId, activeSlug])
+
   const { simulationRef, forceXRef } = useGraphSimulation({
     nodes:  graphData?.nodes ?? [],
     edges:  graphData?.edges ?? [],
@@ -139,6 +206,10 @@ export default function DexGraph({ enableWindowOffset = true }: DexGraphProps) {
     }
     simulationRef.current?.alpha(0.1).restart()
   }, [activeSlug, focusedId, simulationRef])
+
+  useEffect(() => {
+    refreshLinkStyles()
+  }, [focusedId, activeSlug, refreshLinkStyles])
 
   // ── Desktop graph offset helper (animated for lively motion) ───────────────
 
@@ -266,6 +337,22 @@ export default function DexGraph({ enableWindowOffset = true }: DexGraphProps) {
       }
       .orb-ring-2 { animation-delay: 1.27s; }
       .orb-ring-3 { animation-delay: 2.53s; }
+      @keyframes graph-link-focus-flow {
+        0%   { stroke-dashoffset: 0; }
+        100% { stroke-dashoffset: 6; }
+      }
+      line.graph-link-focus {
+        stroke: ${COLORS.MIDLIGHT};
+        stroke-opacity: 0.88;
+        stroke-width: 0.55;
+        stroke-dasharray: 1 1;
+      }
+      line.graph-link-focus--to-target {
+        animation: graph-link-focus-flow 1.2s linear infinite reverse;
+      }
+      line.graph-link-focus--to-source {
+        animation: graph-link-focus-flow 1.2s linear infinite;
+      }
     `)
 
     const root = svg.append('g')
@@ -279,7 +366,7 @@ export default function DexGraph({ enableWindowOffset = true }: DexGraphProps) {
         .attr('width', 10).attr('height', 10)
         .attr('rx', 0)
         .attr('fill', 'none')
-        .attr('stroke', COLORS.MIDLIGHT)
+        .attr('stroke', COLORS.MID)
         .attr('stroke-width', 0.6)
         .attr('class', i === 1 ? 'orb-ring' : `orb-ring orb-ring-${i}`)
     })
@@ -324,10 +411,7 @@ export default function DexGraph({ enableWindowOffset = true }: DexGraphProps) {
       .selectAll<SVGLineElement, GraphEdge>('line')
       .data(edges)
       .join('line')
-      .attr('stroke', COLORS.LIGHT)
       .attr('stroke-width', 0.5)
-      .attr('stroke-opacity', 0.7)
-      .attr('stroke-dasharray', 'none')
       .attr('vector-effect', 'none') as any
 
     // ── Nodes ─────────────────────────────────────────────────────────────────
@@ -339,21 +423,24 @@ export default function DexGraph({ enableWindowOffset = true }: DexGraphProps) {
       .attr('class', 'node')
       .style('cursor', 'pointer')
       .on('mouseover', (_e, d) => {
-        linkRef.current
-          ?.attr('stroke', COLORS.LIGHT)
-          .filter((l: any) => l.source.id === d.id || l.target.id === d.id)
-          .attr('stroke', COLORS.MID)
+        hoveredNodeIdRef.current = d.id
+        refreshLinkStyles()
       })
       .on('mouseleave', () => {
-        linkRef.current?.attr('stroke', COLORS.LIGHT)
+        hoveredNodeIdRef.current = null
+        refreshLinkStyles()
       })
       .on('click', (event, d) => {
+        const ev = event as MouseEvent
+        if (d.type === 'tag') {
+          const tagSlug = d.id.startsWith('tag-') ? d.id.slice(4) : slugifyTag(d.label)
+          if (ev.shiftKey) openBesideTag(tagSlug)
+          else openTag(tagSlug)
+          return
+        }
         if (d.url) {
-          if ((event as MouseEvent).shiftKey) {
-            splitOpen(d.id)
-          } else {
-            openPost(d.id)
-          }
+          if (ev.shiftKey) openBeside(d.id)
+          else openPost(d.id)
         }
       })
       .call(
@@ -386,7 +473,7 @@ export default function DexGraph({ enableWindowOffset = true }: DexGraphProps) {
       appendShape(el, style)
 
       el.append('text')
-        .text(d.label)
+        .text(d.type === 'tag' ? formatTagDisplay(d.label) : d.label)
         .attr('text-anchor', 'middle')
         .attr('x', style.textX)
         .attr('y', style.textY)
@@ -414,8 +501,10 @@ export default function DexGraph({ enableWindowOffset = true }: DexGraphProps) {
       svg.call(zoomBehavior.transform, d3.zoomIdentity.translate(tx, ty).scale(initialScale))
     }
 
+    hoveredNodeIdRef.current = null
+    refreshLinkStyles()
     simulationRef.current?.alpha(1).restart()
-  }, [graphData, dimensions, simPreset])
+  }, [graphData, dimensions, simPreset, refreshLinkStyles])
 
   // ── Global event listeners ──────────────────────────────────────────────────
 
@@ -471,9 +560,8 @@ export default function DexGraph({ enableWindowOffset = true }: DexGraphProps) {
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <svg
         ref={svgRef}
-        style={{ width: '100%', height: '100%', display: 'block', background: COLORS.OFFWHITE }}
+        style={{ width: '100%', height: '100%', display: 'block', background: COLORS.ZINC_200 }}
       />
-      <DitherOverlay position="absolute" zIndex={2} strategy="screen" />
     </div>
   )
 }

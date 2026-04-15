@@ -40,7 +40,7 @@ export function getNodeStyle(type: NodeType, weight: number): NodeStyle {
         fill:        COLORS.BLACK,
         stroke:      COLORS.BLACK,
         strokeWidth: 0,
-        fontSize:    9,
+        fontSize:    8,
         textColor:   COLORS.BLACK,
         textX:       0,
         textY:       size / 2 + 12,

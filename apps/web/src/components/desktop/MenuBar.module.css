@@ -1,0 +1,74 @@
+/*
+ * Bottom bar — unified menubar + carousel dots.
+ * Colors: var(--fbr-*) from @/lib/tokens (designTokensCss).
+ * Z.MENUBAR 9995   Transition 120ms = DURATION.FAST
+ */
+
+.bar {
+  height: 36px;
+  z-index: 9995;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  box-sizing: border-box;
+  font-weight: 600;
+  font-size: 10px;
+  color: var(--fbr-zinc-700);
+}
+
+.brandRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 6px;
+  flex-shrink: 0;
+}
+
+.brandTitle {
+  font-family: var(--font-mplus), sans-serif;
+}
+
+.dotsZone {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.storeRegion {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.storeButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0 6px;
+  height: 36px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--fbr-zinc-500);
+  transition: color 120ms ease;
+}
+
+.storeButtonOpen {
+  color: var(--fbr-zinc-700);
+}
+
+.cartQty {
+  font-family: var(--font-mplus), sans-serif;
+  font-size: 10px;
+  line-height: 1;
+  color: var(--fbr-zinc-700);
+}
+
+.bagIcon {
+  display: block;
+  flex-shrink: 0;
+}
