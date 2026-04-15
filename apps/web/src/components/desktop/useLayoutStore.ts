@@ -1,21 +1,51 @@
 // apps/web/src/components/desktop/useLayoutStore.ts
 import { create } from 'zustand'
+import { BREAKPOINTS } from '@/lib/tokens'
+
+/** crypto.randomUUID is unavailable in older mobile WebViews (iOS < 15.4). */
+function uuid(): string {
+  const c = typeof globalThis !== 'undefined' ? globalThis.crypto : undefined
+  if (c && typeof c.randomUUID === 'function') {
+    try {
+      return c.randomUUID()
+    } catch {
+      // Fall through to getRandomValues/Math.random fallback.
+    }
+  }
+
+  if (c && typeof c.getRandomValues === 'function') {
+    const bytes = new Uint8Array(16)
+    c.getRandomValues(bytes)
+
+    // RFC 4122 version and variant bits.
+    bytes[6] = (bytes[6] & 0x0f) | 0x40
+    bytes[8] = (bytes[8] & 0x3f) | 0x80
+
+    const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0'))
+    return `${hex.slice(0, 4).join('')}-${hex.slice(4, 6).join('')}-${hex.slice(6, 8).join('')}-${hex.slice(8, 10).join('')}-${hex.slice(10, 16).join('')}`
+  }
+
+  // Last-resort RFC 4122 v4 fallback using Math.random.
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16)
+  })
+}
 
 // ── App types & state ─────────────────────────────────────────────────────────
 
-export type AppType = 'post'
+export type AppType = 'post' | 'tag'
 
 export interface AppState {
   post: { slug: string }
+  tag:  { tagSlug: string }
 }
 
 // ── Window item ───────────────────────────────────────────────────────────────
 
-export interface WindowItem {
-  id:       string
-  appType:  AppType
-  appState: AppState[AppType]
-}
+export type WindowItem =
+  | { id: string; appType: 'post'; appState: AppState['post'] }
+  | { id: string; appType: 'tag'; appState: AppState['tag'] }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -30,36 +60,70 @@ export function postPathFromSlug(slug: string): string {
   return `/posts/${encodeURIComponent(slug)}`
 }
 
-export function parsePostPath(pathname: string): { kind: 'home' } | { kind: 'post'; slug: string } {
-  const trimmed = pathname.replace(/\/+$/, '') || '/'
-  if (trimmed === '/') return { kind: 'home' }
-  const m = /^\/posts\/([^/]+)$/.exec(trimmed)
-  if (!m) return { kind: 'home' }
-  return { kind: 'post', slug: decodeURIComponent(m[1]) }
+export function tagPathFromSlug(tagSlug: string): string {
+  return `/tag/${encodeURIComponent(tagSlug)}`
 }
 
-function pushUrl(slug: string, replace = false) {
+export function pathForWindowItem(w: WindowItem): string {
+  if (w.appType === 'post') return postPathFromSlug(w.appState.slug)
+  return tagPathFromSlug(w.appState.tagSlug)
+}
+
+export function parseContentPath(pathname: string):
+  | { kind: 'home' }
+  | { kind: 'post'; slug: string }
+  | { kind: 'tag'; tagSlug: string } {
+  const trimmed = pathname.replace(/\/+$/, '') || '/'
+  if (trimmed === '/') return { kind: 'home' }
+  const tagM = /^\/tag\/([^/]+)$/.exec(trimmed)
+  if (tagM) return { kind: 'tag', tagSlug: decodeURIComponent(tagM[1]) }
+  const m = /^\/posts\/([^/]+)$/.exec(trimmed)
+  if (m) return { kind: 'post', slug: decodeURIComponent(m[1]) }
+  return { kind: 'home' }
+}
+
+/** @deprecated Prefer parseContentPath — this maps only `/posts/…` to a post. */
+export function parsePostPath(pathname: string): { kind: 'home' } | { kind: 'post'; slug: string } {
+  const p = parseContentPath(pathname)
+  if (p.kind === 'post') return p
+  return { kind: 'home' }
+}
+
+function pushBrowserPath(path: string, replace = false) {
   if (typeof window === 'undefined') return
-  const url = postPathFromSlug(slug)
-  if (replace) window.history.replaceState({ slug }, '', url)
-  else         window.history.pushState({ slug }, '', url)
+  if (replace) window.history.replaceState({}, '', path)
+  else         window.history.pushState({}, '', path)
+}
+
+function isMobileViewport(): boolean {
+  if (typeof window === 'undefined') return false
+  return window.innerWidth < BREAKPOINTS.MOBILE
 }
 
 // ── Selector helpers ──────────────────────────────────────────────────────────
 
 /**
- * Slug for URL / graph context. When `focusedId` is null but windows exist, user is on
- * the trailing graph slot — use the last window's slug for continuity (no URL push on tail alone).
+ * Graph node id for the focused (or last) window: entry slug, or `tag-{slug}` for tag views.
+ * Used to align the pulse / highlight with the correct graph node.
  */
-export function getFocusedSlug(state: LayoutStore): string {
+export function getFocusedGraphNodeId(state: LayoutStore): string {
   if (state.focusedId) {
-    const w = state.windows.find(w => w.id === state.focusedId)
-    if (w) return (w.appState as AppState['post']).slug
+    const w = state.windows.find((x) => x.id === state.focusedId)
+    if (w) {
+      if (w.appType === 'post') return w.appState.slug
+      return `tag-${w.appState.tagSlug}`
+    }
   }
   const last = state.windows[state.windows.length - 1]
-  if (last) return (last.appState as AppState['post']).slug
+  if (last) {
+    if (last.appType === 'post') return last.appState.slug
+    return `tag-${last.appState.tagSlug}`
+  }
   return 'index'
 }
+
+/** @deprecated Use getFocusedGraphNodeId */
+export const getFocusedSlug = getFocusedGraphNodeId
 
 // ── Slot model: windows[0..n-1] + one trailing graph slot at index n ─────────
 
@@ -74,7 +138,6 @@ function clampOffset(offset: number, windowsLen: number): number {
   return Math.max(0, Math.min(offset, sc - DESKTOP_VISIBLE))
 }
 
-/** Pan so slot `slotIndex` sits on the right of the visible pair (when possible). */
 function offsetForRightSlot(slotIndex: number, windowsLen: number): number {
   return clampOffset(slotIndex - (DESKTOP_VISIBLE - 1), windowsLen)
 }
@@ -83,27 +146,19 @@ function offsetForRightSlot(slotIndex: number, windowsLen: number): number {
 
 export interface LayoutStore {
   windows:          WindowItem[]
-  /**
-   * Active window id, or `null` when the trailing graph slot is focused (desktop: interact
-   * with graph in that pane; `openPost` appends a window).
-   */
   focusedId:        string | null
-  /** Index of the left-most visible slot on desktop (each slot is a window or the graph tail). */
   viewOffset:       number
-  /** Driven by DexGraph zoom — true once past the label zoom threshold. */
   panelVisible:     boolean
-  /** Manual hide/show toggle for the entire panel strip. */
   panelCollapsed:   boolean
-  /** Mobile only: which carousel page is visible (0 = graph, 1+ = window index+1). */
   mobileActivePage: number
 
   openPost(slug: string, options?: { replace?: boolean; skipPushState?: boolean }): void
+  openTag(tagSlug: string, options?: { replace?: boolean; skipPushState?: boolean }): void
   openBeside(slug: string): void
+  openBesideTag(tagSlug: string): void
   closeWindow(id: string):  void
   focusWindow(id: string):  void
-  /** Focus the trailing graph slot (after all windows). No-op if no windows. */
   focusGraphTail: () => void
-  /** Desktop: previous/next slot (windows + graph tail at end, wraps). */
   focusAdjacentWindow(delta: -1 | 1): void
   setViewOffset(offset: number): void
   setPanelVisible(visible: boolean):      void
@@ -121,27 +176,40 @@ export const useLayoutStore = create<LayoutStore>((set, get) => ({
   panelCollapsed:   false,
   mobileActivePage: 0,
 
-  // ── openPost ───────────────────────────────────────────────────────────────
-
   openPost: (slug, options) => {
     set((state) => {
       if (state.windows.length === 0) {
         const w: WindowItem = {
-          id: crypto.randomUUID(), appType: 'post', appState: { slug },
+          id: uuid(), appType: 'post', appState: { slug },
         }
-        if (!options?.skipPushState) pushUrl(slug, options?.replace)
+        if (!options?.skipPushState) pushBrowserPath(postPathFromSlug(slug), options?.replace)
         return { windows: [w], focusedId: w.id, viewOffset: 0, mobileActivePage: 1 }
       }
 
-      // Trailing graph slot focused → append a new window (before the implicit tail).
       if (state.focusedId === null) {
+        if (state.windows.length > 0 && isMobileViewport()) {
+          const targetIdx = state.windows.length - 1
+          const target = state.windows[targetIdx]
+          const newWindows = state.windows.map((w, idx) =>
+            idx === targetIdx
+              ? { ...w, appType: 'post' as const, appState: { slug } }
+              : w,
+          )
+          if (!options?.skipPushState) pushBrowserPath(postPathFromSlug(slug), options?.replace)
+          return {
+            windows:          newWindows,
+            focusedId:        target.id,
+            viewOffset:       offsetForRightSlot(targetIdx, newWindows.length),
+            mobileActivePage: targetIdx + 1,
+          }
+        }
         if (state.windows.length >= MAX_WINDOWS) return state
         const newW: WindowItem = {
-          id: crypto.randomUUID(), appType: 'post', appState: { slug },
+          id: uuid(), appType: 'post', appState: { slug },
         }
         const newWindows = [...state.windows, newW]
         const insertIdx = newWindows.length - 1
-        if (!options?.skipPushState) pushUrl(slug, options?.replace)
+        if (!options?.skipPushState) pushBrowserPath(postPathFromSlug(slug), options?.replace)
         return {
           windows:          newWindows,
           focusedId:        newW.id,
@@ -153,16 +221,72 @@ export const useLayoutStore = create<LayoutStore>((set, get) => ({
       const targetId   = state.focusedId
       const targetIdx  = state.windows.findIndex(w => w.id === targetId)
       const newWindows = state.windows.map(w =>
-        w.id === targetId ? { ...w, appState: { slug } } : w,
+        w.id === targetId
+          ? { ...w, appType: 'post' as const, appState: { slug } }
+          : w,
       )
 
-      if (!options?.skipPushState) pushUrl(slug, options?.replace)
+      if (!options?.skipPushState) pushBrowserPath(postPathFromSlug(slug), options?.replace)
       const mobilePage = targetIdx >= 0 ? targetIdx + 1 : state.mobileActivePage
       return { windows: newWindows, focusedId: targetId, mobileActivePage: mobilePage }
     })
   },
 
-  // ── openBeside ────────────────────────────────────────────────────────────
+  openTag: (tagSlug, options) => {
+    set((state) => {
+      if (state.windows.length === 0) {
+        const w: WindowItem = {
+          id: uuid(), appType: 'tag', appState: { tagSlug },
+        }
+        if (!options?.skipPushState) pushBrowserPath(tagPathFromSlug(tagSlug), options?.replace)
+        return { windows: [w], focusedId: w.id, viewOffset: 0, mobileActivePage: 1 }
+      }
+
+      if (state.focusedId === null) {
+        if (state.windows.length > 0 && isMobileViewport()) {
+          const targetIdx = state.windows.length - 1
+          const target = state.windows[targetIdx]
+          const newWindows = state.windows.map((w, idx) =>
+            idx === targetIdx
+              ? { ...w, appType: 'tag' as const, appState: { tagSlug } }
+              : w,
+          )
+          if (!options?.skipPushState) pushBrowserPath(tagPathFromSlug(tagSlug), options?.replace)
+          return {
+            windows:          newWindows,
+            focusedId:        target.id,
+            viewOffset:       offsetForRightSlot(targetIdx, newWindows.length),
+            mobileActivePage: targetIdx + 1,
+          }
+        }
+        if (state.windows.length >= MAX_WINDOWS) return state
+        const newW: WindowItem = {
+          id: uuid(), appType: 'tag', appState: { tagSlug },
+        }
+        const newWindows = [...state.windows, newW]
+        const insertIdx = newWindows.length - 1
+        if (!options?.skipPushState) pushBrowserPath(tagPathFromSlug(tagSlug), options?.replace)
+        return {
+          windows:          newWindows,
+          focusedId:        newW.id,
+          viewOffset:       offsetForRightSlot(insertIdx, newWindows.length),
+          mobileActivePage: newWindows.length,
+        }
+      }
+
+      const targetId   = state.focusedId
+      const targetIdx  = state.windows.findIndex(w => w.id === targetId)
+      const newWindows = state.windows.map(w =>
+        w.id === targetId
+          ? { ...w, appType: 'tag' as const, appState: { tagSlug } }
+          : w,
+      )
+
+      if (!options?.skipPushState) pushBrowserPath(tagPathFromSlug(tagSlug), options?.replace)
+      const mobilePage = targetIdx >= 0 ? targetIdx + 1 : state.mobileActivePage
+      return { windows: newWindows, focusedId: targetId, mobileActivePage: mobilePage }
+    })
+  },
 
   openBeside: (slug) => {
     set((state) => {
@@ -174,7 +298,7 @@ export const useLayoutStore = create<LayoutStore>((set, get) => ({
       const insertIdx = focusedIdx >= 0 ? focusedIdx + 1 : state.windows.length
 
       const newWindow: WindowItem = {
-        id: crypto.randomUUID(), appType: 'post', appState: { slug },
+        id: uuid(), appType: 'post', appState: { slug },
       }
       const newWindows = [
         ...state.windows.slice(0, insertIdx),
@@ -182,7 +306,7 @@ export const useLayoutStore = create<LayoutStore>((set, get) => ({
         ...state.windows.slice(insertIdx),
       ]
 
-      pushUrl(slug)
+      pushBrowserPath(postPathFromSlug(slug))
 
       return {
         windows:          newWindows,
@@ -193,7 +317,34 @@ export const useLayoutStore = create<LayoutStore>((set, get) => ({
     })
   },
 
-  // ── closeWindow ───────────────────────────────────────────────────────────
+  openBesideTag: (tagSlug) => {
+    set((state) => {
+      if (state.windows.length >= MAX_WINDOWS) return state
+
+      const focusedIdx = state.focusedId
+        ? state.windows.findIndex(w => w.id === state.focusedId)
+        : -1
+      const insertIdx = focusedIdx >= 0 ? focusedIdx + 1 : state.windows.length
+
+      const newWindow: WindowItem = {
+        id: uuid(), appType: 'tag', appState: { tagSlug },
+      }
+      const newWindows = [
+        ...state.windows.slice(0, insertIdx),
+        newWindow,
+        ...state.windows.slice(insertIdx),
+      ]
+
+      pushBrowserPath(tagPathFromSlug(tagSlug))
+
+      return {
+        windows:          newWindows,
+        focusedId:        newWindow.id,
+        viewOffset:       offsetForRightSlot(insertIdx, newWindows.length),
+        mobileActivePage: insertIdx + 1,
+      }
+    })
+  },
 
   closeWindow: (id) => {
     set((state) => {
@@ -215,9 +366,9 @@ export const useLayoutStore = create<LayoutStore>((set, get) => ({
 
       if (newFocusedId) {
         const focused = newWindows.find(w => w.id === newFocusedId)
-        if (focused) pushUrl((focused.appState as AppState['post']).slug)
+        if (focused) pushBrowserPath(pathForWindowItem(focused))
       } else if (newWindows.length === 0) {
-        pushUrl('index')
+        pushBrowserPath('/')
       }
 
       return {
@@ -229,15 +380,13 @@ export const useLayoutStore = create<LayoutStore>((set, get) => ({
     })
   },
 
-  // ── focusWindow ───────────────────────────────────────────────────────────
-
   focusWindow: (id) => {
     set((state) => {
       const idx = state.windows.findIndex(w => w.id === id)
       if (idx === -1) return state
 
       const w = state.windows[idx]
-      pushUrl((w.appState as AppState['post']).slug)
+      pushBrowserPath(pathForWindowItem(w))
 
       const alreadyVisible = idx >= state.viewOffset && idx < state.viewOffset + DESKTOP_VISIBLE
       const newViewOffset  = alreadyVisible

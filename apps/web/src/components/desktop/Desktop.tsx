@@ -1,14 +1,13 @@
 // apps/web/src/components/desktop/Desktop.tsx
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import DexGraph from '@/components/graph/DexGraph'
-import CarouselDots from './CarouselDots'
 import Window from './Window'
 import MenuBar from './MenuBar'
 import {
   useLayoutStore,
-  parsePostPath,
+  parseContentPath,
   postPathFromSlug,
 } from './useLayoutStore'
 import { COLORS, Z, RADIUS, BREAKPOINTS, LAYOUT, DURATION } from '@/lib/tokens'
@@ -38,6 +37,7 @@ function useIsMobile(): boolean {
  */
 function useUrlSync(initialSlug?: string) {
   const openPost = useLayoutStore((s) => s.openPost)
+  const openTag  = useLayoutStore((s) => s.openTag)
   useEffect(() => {
     const url       = new URL(window.location.href)
     const legacyP   = url.searchParams.get('p')
@@ -46,9 +46,13 @@ function useUrlSync(initialSlug?: string) {
       window.history.replaceState({ slug: legacyP }, '', path + window.location.hash)
     }
 
-    const parsed = parsePostPath(window.location.pathname)
+    const parsed = parseContentPath(window.location.pathname)
     if (parsed.kind === 'home') {
       if (initialSlug) openPost(initialSlug, { replace: true })
+      return
+    }
+    if (parsed.kind === 'tag') {
+      openTag(parsed.tagSlug, { replace: true })
       return
     }
     openPost(parsed.slug, { replace: true })
@@ -57,16 +61,20 @@ function useUrlSync(initialSlug?: string) {
 
   useEffect(() => {
     const handler = () => {
-      const parsed = parsePostPath(window.location.pathname)
+      const parsed = parseContentPath(window.location.pathname)
       if (parsed.kind === 'home') {
         useLayoutStore.setState({ windows: [], focusedId: null, viewOffset: 0, mobileActivePage: 0 })
+        return
+      }
+      if (parsed.kind === 'tag') {
+        openTag(parsed.tagSlug, { skipPushState: true })
         return
       }
       openPost(parsed.slug, { skipPushState: true })
     }
     window.addEventListener('popstate', handler)
     return () => window.removeEventListener('popstate', handler)
-  }, [openPost])
+  }, [openPost, openTag])
 }
 
 function isTypingTarget(target: EventTarget | null): boolean {
@@ -146,7 +154,7 @@ export default function Desktop({ initialSlug }: DesktopProps) {
         height:     '100vh',
         position:   'relative',
         overflow:   'hidden',
-        paddingTop: `${LAYOUT.MENUBAR_HEIGHT}px`,
+        paddingBottom: `${2 * LAYOUT.WINDOW_GAP + LAYOUT.MENUBAR_HEIGHT}px`,
         boxSizing:  'border-box',
       }}
     >
@@ -165,10 +173,10 @@ export default function Desktop({ initialSlug }: DesktopProps) {
       <div
         style={{
           position:      'absolute',
-          top:           LAYOUT.MENUBAR_HEIGHT + LAYOUT.WINDOW_GAP,
+          top:           LAYOUT.WINDOW_GAP,
           left:          LAYOUT.WINDOW_GAP,
           right:         LAYOUT.WINDOW_GAP,
-          bottom:        LAYOUT.WINDOW_GAP,
+          bottom:        2 * LAYOUT.WINDOW_GAP + LAYOUT.MENUBAR_HEIGHT,
           overflow:      'hidden',
           zIndex:        Z.CHROME,
           pointerEvents: 'none',
@@ -244,7 +252,7 @@ export default function Desktop({ initialSlug }: DesktopProps) {
               width:          '20px',
               height:         '20px',
               background:     COLORS.OFFWHITE,
-              border:         `1px solid ${COLORS.LIGHT}`,
+              border:         `1px solid ${COLORS.ZINC_200}`,
               borderRadius:   RADIUS.SM,
               cursor:         'pointer',
               display:        'flex',
@@ -255,7 +263,6 @@ export default function Desktop({ initialSlug }: DesktopProps) {
               fontFamily:     'var(--font-mplus), sans-serif',
               lineHeight:     1,
               padding:        0,
-              boxShadow:      '0 1px 4px rgba(0,0,0,0.06)',
             }}
             title={panelCollapsed ? 'Show viewer' : 'Hide viewer'}
           >
@@ -273,37 +280,137 @@ function MobileLayout() {
   const windows          = useLayoutStore((s) => s.windows)
   const focusedId        = useLayoutStore((s) => s.focusedId)
   const mobileActivePage = useLayoutStore((s) => s.mobileActivePage)
+  const focusGraphTail   = useLayoutStore((s) => s.focusGraphTail)
   const focusWindow      = useLayoutStore((s) => s.focusWindow)
   const closeWindow      = useLayoutStore((s) => s.closeWindow)
+  const setMobileActivePage = useLayoutStore((s) => s.setMobileActivePage)
 
   const totalPages = 1 + windows.length
+  const touchStartXRef = useRef<number | null>(null)
+  const touchStartYRef = useRef<number | null>(null)
+  const touchDxRef = useRef(0)
+  const touchDyRef = useRef(0)
+  const swipeIntentRef = useRef<'none' | 'horizontal' | 'vertical'>('none')
+  const [dragOffsetPx, setDragOffsetPx] = useState(0)
+
+  const goToPage = useCallback((page: number) => {
+    const clamped = Math.max(0, Math.min(page, windows.length))
+    if (clamped === 0) {
+      if (windows.length > 0) focusGraphTail()
+      else setMobileActivePage(0)
+      return
+    }
+    const w = windows[clamped - 1]
+    if (w) focusWindow(w.id)
+  }, [windows, focusWindow, focusGraphTail, setMobileActivePage])
+
+  useEffect(() => {
+    if (mobileActivePage <= windows.length) return
+    goToPage(windows.length)
+  }, [mobileActivePage, windows.length, goToPage])
+
+  const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    touchStartXRef.current = e.touches[0]?.clientX ?? null
+    touchStartYRef.current = e.touches[0]?.clientY ?? null
+    touchDxRef.current = 0
+    touchDyRef.current = 0
+    swipeIntentRef.current = 'none'
+    setDragOffsetPx(0)
+  }, [])
+
+  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    if (touchStartXRef.current === null || touchStartYRef.current === null) return
+    const currentX = e.touches[0]?.clientX
+    const currentY = e.touches[0]?.clientY
+    if (typeof currentX !== 'number') return
+    if (typeof currentY !== 'number') return
+    const dx = currentX - touchStartXRef.current
+    const dy = currentY - touchStartYRef.current
+    touchDxRef.current = dx
+    touchDyRef.current = dy
+
+    if (swipeIntentRef.current === 'none') {
+      const absDx = Math.abs(dx)
+      const absDy = Math.abs(dy)
+      if (absDx < 8 && absDy < 8) return
+      swipeIntentRef.current = absDx > absDy ? 'horizontal' : 'vertical'
+    }
+
+    if (swipeIntentRef.current === 'horizontal') {
+      setDragOffsetPx(dx)
+    }
+  }, [])
+
+  const handleTouchEnd = useCallback(() => {
+    if (touchStartXRef.current === null) return
+    if (swipeIntentRef.current !== 'horizontal') {
+      touchStartXRef.current = null
+      touchStartYRef.current = null
+      touchDxRef.current = 0
+      touchDyRef.current = 0
+      swipeIntentRef.current = 'none'
+      setDragOffsetPx(0)
+      return
+    }
+
+    const threshold = Math.max(36, window.innerWidth * 0.14)
+    const dx = touchDxRef.current
+
+    let nextPage = mobileActivePage
+    if (dx <= -threshold) nextPage = mobileActivePage + 1
+    else if (dx >= threshold) nextPage = mobileActivePage - 1
+
+    goToPage(nextPage)
+    touchStartXRef.current = null
+    touchStartYRef.current = null
+    touchDxRef.current = 0
+    touchDyRef.current = 0
+    swipeIntentRef.current = 'none'
+    setDragOffsetPx(0)
+  }, [mobileActivePage, goToPage])
 
   return (
     <div
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
       style={{
         width:      '100vw',
         height:     '100vh',
         position:   'relative',
         overflow:   'hidden',
-        paddingTop: `${LAYOUT.MENUBAR_HEIGHT}px`,
+        paddingBottom: `${2 * LAYOUT.WINDOW_GAP + LAYOUT.MENUBAR_HEIGHT}px`,
         boxSizing:  'border-box',
       }}
     >
-      <MenuBar />
-      {/* Carousel track: graph page + one page per open window */}
+      <MenuBar isMobile />
+      {/* Graph is a fixed background layer on mobile. */}
+      <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
+        <DexGraph enableWindowOffset={false} />
+      </div>
+
+      {/* Swipe track: page 0 is intentionally empty so the graph remains visible. */}
       <div
         style={{
+          position:   'absolute',
+          top:        0,
+          left:       0,
+          right:      0,
+          bottom:     2 * LAYOUT.WINDOW_GAP + LAYOUT.MENUBAR_HEIGHT,
+          zIndex:     Z.CHROME,
           display:    'flex',
           width:      `${totalPages * 100}vw`,
-          height:     '100%',
-          transform:  `translateX(${-mobileActivePage * 100}vw)`,
-          transition: `transform ${DURATION.STRIP_PAN} cubic-bezier(0.22, 1, 0.36, 1)`,
+          height:     `calc(100% - ${2 * LAYOUT.WINDOW_GAP + LAYOUT.MENUBAR_HEIGHT}px)`,
+          transform:  `translateX(calc(${-mobileActivePage * 100}vw + ${dragOffsetPx}px))`,
+          transition: dragOffsetPx === 0
+            ? `transform ${DURATION.STRIP_PAN} cubic-bezier(0.22, 1, 0.36, 1)`
+            : 'none',
+          pointerEvents: mobileActivePage === 0 ? 'none' : 'auto',
         }}
       >
-        {/* Page 0: graph */}
-        <div style={{ width: '100vw', height: '100vh', flexShrink: 0 }}>
-          <DexGraph enableWindowOffset={false} />
-        </div>
+        {/* Page 0: transparent on purpose (fixed graph lives behind). */}
+        <div aria-hidden style={{ width: '100vw', height: '100%', flexShrink: 0 }} />
 
         {/* Pages 1+: one per open window */}
         {windows.map((w) => (
@@ -311,9 +418,9 @@ function MobileLayout() {
             key={w.id}
             style={{
               width:      '100vw',
-              height:     '100vh',
+              height:     '100%',
               flexShrink: 0,
-              padding:    LAYOUT.WINDOW_GAP,
+              padding:    LAYOUT.WINDOW_GAP_MOBILE,
               boxSizing:  'border-box',
             }}
           >
@@ -327,8 +434,6 @@ function MobileLayout() {
           </div>
         ))}
       </div>
-
-      <CarouselDots />
     </div>
   )
 }

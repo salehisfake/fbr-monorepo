@@ -8,20 +8,19 @@ import { Z, LAYOUT } from '@/lib/tokens'
 import styles from './StoreFlyout.module.css'
 
 // ── Product configuration from env ────────────────────────────────────────────
-const VARIANT_GID = process.env.NEXT_PUBLIC_SHOPIFY_MDOT_VARIANT_GID ?? ''
+const VARIANT_GID = process.env.NEXT_PUBLIC_SHOPIFY_MDOT_VARIANT_GID ?? 'gid://shopify/ProductVariant/46961502224515'
 const PRICE       = process.env.NEXT_PUBLIC_MDOT_PRICE               ?? ''
 const IMAGE_URL   = process.env.NEXT_PUBLIC_MDOT_IMAGE_URL            ?? ''
 const TITLE       = process.env.NEXT_PUBLIC_MDOT_TITLE                ?? 'mDOT'
-const DESCRIPTION = process.env.NEXT_PUBLIC_MDOT_DESCRIPTION          ?? 'A preorder for the mDOT device. Your license key will be emailed after purchase.'
+const DESCRIPTION = process.env.NEXT_PUBLIC_MDOT_DESCRIPTION          ?? 'A preorder for the mDOT device. Your Shopify order ID (in the confirmation email) is your product key.'
 
 interface StoreFlyoutProps {
   onClose: () => void
 }
 
 /**
- * Renders via createPortal(document.body) so backdrop-filter samples the real
- * page (graph / windows). Nesting under MenuBar's GlassSurface breaks blur —
- * the backdrop becomes an empty or flattened layer.
+ * Store + cart in one panel. Primary action is Purchase → Shopify checkout.
+ * "Add to cart" only appears outside this flyout (e.g. PreorderCTA in posts).
  */
 const StoreFlyout = forwardRef<HTMLDivElement, StoreFlyoutProps>(function StoreFlyout(
   { onClose },
@@ -35,8 +34,8 @@ const StoreFlyout = forwardRef<HTMLDivElement, StoreFlyoutProps>(function StoreF
   const removeFromCart = useCartStore((s) => s.removeFromCart)
 
   const hasItems = lines.length > 0
-  const isInCart = VARIANT_GID !== '' && lines.some((l) => l.merchandiseId === VARIANT_GID)
-  const canAdd   = VARIANT_GID !== '' && !isLoading
+  const hasMdot  = VARIANT_GID !== '' && lines.some((l) => l.merchandiseId === VARIANT_GID)
+  const canPurchase = VARIANT_GID !== '' && !isLoading
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -46,9 +45,17 @@ const StoreFlyout = forwardRef<HTMLDivElement, StoreFlyoutProps>(function StoreF
     return () => document.removeEventListener('keydown', handleKey)
   }, [onClose])
 
-  function handleAddToCart() {
-    if (!canAdd) return
-    addToCart(VARIANT_GID, 1)
+  async function handlePurchase() {
+    if (!canPurchase) return
+    try {
+      if (!hasMdot) {
+        await addToCart(VARIANT_GID, 1)
+      }
+      const url = useCartStore.getState().checkoutUrl
+      if (url) window.location.assign(url)
+    } catch (err) {
+      console.error('[StoreFlyout] purchase failed:', err)
+    }
   }
 
   const panel = (
@@ -57,8 +64,8 @@ const StoreFlyout = forwardRef<HTMLDivElement, StoreFlyoutProps>(function StoreF
       glass='STORE_FLYOUT'
       style={{
         position:  'fixed',
-        top:       LAYOUT.MENUBAR_HEIGHT + 4,
-        right:     8,
+        bottom:    LAYOUT.WINDOW_GAP + LAYOUT.MENUBAR_HEIGHT + 4,
+        right:     LAYOUT.WINDOW_GAP,
         zIndex:    Z.DROPDOWN,
         isolation: 'isolate',
       }}
@@ -82,14 +89,6 @@ const StoreFlyout = forwardRef<HTMLDivElement, StoreFlyoutProps>(function StoreF
         </div>
 
         <p className={styles.productDesc}>{DESCRIPTION}</p>
-
-        <button
-          className={styles.addButton}
-          onClick={handleAddToCart}
-          disabled={!canAdd}
-        >
-          {isLoading ? 'Adding…' : isInCart ? 'Add another' : VARIANT_GID ? 'Add to cart' : 'Coming soon'}
-        </button>
       </div>
 
       {hasItems && (
@@ -110,20 +109,30 @@ const StoreFlyout = forwardRef<HTMLDivElement, StoreFlyoutProps>(function StoreF
                   className={styles.removeButton}
                   onClick={() => removeFromCart(line.id)}
                   disabled={isLoading}
+                  type='button'
                 >
                   remove
                 </button>
               </div>
             ))}
-
-            {checkoutUrl && (
-              <a href={checkoutUrl} className={styles.checkoutButton}>
-                Checkout
-              </a>
-            )}
           </div>
         </>
       )}
+
+      <div className={styles.purchaseWrap}>
+        <button
+          type='button'
+          className={styles.purchaseButton}
+          onClick={handlePurchase}
+          disabled={!canPurchase}
+        >
+          {isLoading
+            ? 'Purchasing…'
+            : VARIANT_GID
+              ? 'Purchase'
+              : 'Coming soon'}
+        </button>
+      </div>
     </GlassSurface>
   )
 

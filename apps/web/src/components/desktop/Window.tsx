@@ -77,19 +77,14 @@ export default function Window({
       className={isClosing ? styles.closing : styles.entering}
       active={glassOn}
       glass='WINDOW'
-      shadow={true}
-      border={true}
-      insetOpacity={isActive ? 0.82 : 0.2}
-      whiteBorderAlpha={isActive ? 0.58 : 0.34}
       glassFillAlphaScale={isActive ? 1 : 0.1}
       style={{
         width:         '100%',
         height:        '100%',
         overflow:      'hidden',
         boxSizing:     'border-box',
-        outline:       isActive ? '1px solid rgba(63,63,70,0.16)' : '1px solid rgba(63,63,70,0.06)',
+        outline:       `0px solid ${COLORS.ZINC_200}`,
         outlineOffset: -1,
-        transition:    'outline-color 150ms ease',
       }}
       onClick={onFocus}
     >
@@ -133,8 +128,8 @@ export default function Window({
           top:            '16px',
           left:           '16px',
           zIndex:         Z.CHROME,
-          width:          '12px',
-          height:         '12px',
+          width:          '14px',
+          height:         '14px',
           display:        'flex',
           alignItems:     'center',
           justifyContent: 'center',
@@ -154,9 +149,9 @@ export default function Window({
           const iconScale = isCloseHovered ? 1 : 0.5
           return (
             <svg
-              width="8"
-              height="8"
-              viewBox="0 0 8 8"
+              width="16"
+              height="16"
+              viewBox="0 0 10 10"
               aria-hidden="true"
               style={{
                 display:            'block',
@@ -178,13 +173,13 @@ export default function Window({
                   />
                 </filter>
               </defs>
-              <rect x="0" y="0" width="8" height="8" fill={!effectiveVisible ? 'transparent' : COLORS.MID} />
+              <rect x="0" y="0" width="10" height="10" fill={!effectiveVisible ? 'transparent' : COLORS.MID} />
               <rect
                 x="0"
                 y="0"
-                width="8"
-                height="8"
-                fill="#ffffff"
+                width="10"
+                height="10"
+                fill={COLORS.WHITE}
                 filter="url(#close-noise)"
                 opacity={effectiveVisible ? 0.13 : 0}
                 style={{ mixBlendMode: 'multiply' }}
@@ -207,8 +202,9 @@ export default function Window({
               fontSize:   11,
               color:      COLORS.OFFWHITE,
               background: COLORS.BLACK,
-              border:     `1px solid ${COLORS.BLACK}`,
-              padding:    '2px 6px',
+              border:        `0px solid ${COLORS.ZINC_200}`,
+              borderRadius:  '1px',
+              padding:       '2px 6px',
               lineHeight: 1.2,
               whiteSpace: 'nowrap',
             }}

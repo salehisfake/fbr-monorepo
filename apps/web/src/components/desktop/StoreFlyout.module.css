@@ -1,6 +1,6 @@
 /*
  * StoreFlyout.module.css
- * Color values mirror @/lib/tokens COLORS (Tailwind zinc palette)
+ * Colors: var(--fbr-*) from @/lib/tokens (designTokensCss).
  */
 
 /* ── Flyout container ───────────────────────────────────────────────────────── */
@@ -14,7 +14,7 @@
 }
 
 @keyframes flyoutIn {
-  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  from { opacity: 0; transform: translateY(4px) scale(0.98); }
   to   { opacity: 1; transform: translateY(0)   scale(1);    }
 }
 
@@ -28,7 +28,8 @@
   display: block;
   width: 100%;
   height: auto;
-  border-radius: 2px;
+  border: 1px solid var(--fbr-zinc-200);
+  border-radius: 1px;
   margin-bottom: 10px;
   object-fit: cover;
 }
@@ -36,9 +37,9 @@
 .productImagePlaceholder {
   width: 100%;
   aspect-ratio: 4 / 3;
-  background-color: #f4f4f5;  /* zinc-100 */
-  border: 1px solid #e4e4e7;  /* zinc-200 */
-  border-radius: 2px;
+  background-color: var(--fbr-zinc-100);  /* zinc-100 */
+  border: 1px solid var(--fbr-zinc-200);  /* zinc-200 */
+  border-radius: 1px;
   margin-bottom: 10px;
 }
 
@@ -54,14 +55,14 @@
   font-family: var(--font-mplus), sans-serif;
   font-size: 13px;
   font-weight: 500;
-  color: #3f3f46;  /* zinc-700 */
+  color: var(--fbr-zinc-700);  /* zinc-700 */
   letter-spacing: -0.01em;
 }
 
 .productPrice {
   font-family: var(--font-mplus), sans-serif;
   font-size: 11px;
-  color: #52525c;  /* zinc-600 */
+  color: var(--fbr-zinc-600);  /* zinc-600 */
   letter-spacing: 0.01em;
   white-space: nowrap;
 }
@@ -70,54 +71,29 @@
   font-family: var(--font-noto-serif);
   font-size: 12px;
   line-height: 1.65;
-  color: #71717b;  /* zinc-500 */
+  color: var(--fbr-zinc-500);  /* zinc-500 */
   margin: 0 0 12px 0;
-}
-
-.addButton {
-  display: block;
-  width: 100%;
-  border: 1px solid #d4d4d8;  /* zinc-300 */
-  border-radius: 0;
-  background: #f4f4f5;        /* zinc-100 */
-  color: #3f3f46;             /* zinc-700 */
-  font-family: var(--font-mplus), sans-serif;
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  padding: 7px 12px;
-  cursor: pointer;
-  text-align: center;
-  transition: background-color 120ms ease, border-color 120ms ease;
-}
-
-.addButton:hover:not(:disabled) {
-  background: #e4e4e7;  /* zinc-200 */
-}
-
-.addButton:disabled {
-  opacity: 0.55;
-  cursor: default;
 }
 
 /* ── Divider between product and cart ──────────────────────────────────────── */
 
 .divider {
   border: none;
-  border-top: 1px solid #e4e4e7;  /* zinc-200 */
+  border-top: 1px solid var(--fbr-zinc-200);  /* zinc-200 */
   margin: 0;
 }
 
 /* ── Cart section ───────────────────────────────────────────────────────────── */
 
 .cartSection {
-  padding: 10px 14px 14px;
+  padding: 10px 14px 0;
 }
 
 .cartHeader {
   font-family: var(--font-mplus), sans-serif;
   font-size: 10px;
   letter-spacing: 0.06em;
-  color: #71717b;  /* zinc-500 */
+  color: var(--fbr-zinc-500);  /* zinc-500 */
   margin-bottom: 8px;
   text-transform: uppercase;
 }
@@ -129,13 +105,13 @@
   gap: 1px 8px;
   margin-bottom: 6px;
   padding-bottom: 6px;
-  border-bottom: 1px solid #f4f4f5;  /* zinc-100 */
+  border-bottom: 1px solid var(--fbr-zinc-200);
 }
 
 .lineTitle {
   font-family: var(--font-mplus), sans-serif;
   font-size: 11px;
-  color: #3f3f46;
+  color: var(--fbr-zinc-700);
   grid-column: 1;
   grid-row: 1;
 }
@@ -143,7 +119,7 @@
 .lineQty {
   font-family: var(--font-mplus), sans-serif;
   font-size: 11px;
-  color: #71717b;
+  color: var(--fbr-zinc-500);
   grid-column: 2;
   grid-row: 1;
 }
@@ -151,7 +127,7 @@
 .lineCost {
   font-family: var(--font-mplus), sans-serif;
   font-size: 11px;
-  color: #52525c;
+  color: var(--fbr-zinc-600);
   grid-column: 3;
   grid-row: 1;
   text-align: right;
@@ -164,7 +140,7 @@
   padding: 0;
   font-family: var(--font-mplus), sans-serif;
   font-size: 10px;
-  color: #9f9fa9;  /* zinc-400 */
+  color: var(--fbr-zinc-400);  /* zinc-400 */
   cursor: pointer;
   text-decoration: underline;
   grid-column: 1;
@@ -174,29 +150,35 @@
 }
 
 .removeButton:hover {
-  color: #52525c;
+  color: var(--fbr-zinc-600);
 }
 
-.checkoutButton {
+.purchaseWrap {
+  padding: 12px 14px 14px;
+}
+
+.purchaseButton {
   display: block;
   width: 100%;
-  margin-top: 10px;
-  border: 1px solid #3f3f46;  /* zinc-700 */
-  border-radius: 0;
-  background: #3f3f46;
-  color: #fafafa;
+  border: 1px solid var(--fbr-zinc-200);
+  border-radius: 1px;
+  background: var(--fbr-zinc-700);
+  color: var(--fbr-zinc-50);
   font-family: var(--font-mplus), sans-serif;
   font-size: 11px;
   letter-spacing: 0.04em;
   padding: 8px 12px;
   cursor: pointer;
   text-align: center;
-  text-decoration: none;
   transition: background-color 120ms ease;
   box-sizing: border-box;
 }
 
-.checkoutButton:hover {
-  background: #27272a;  /* zinc-800 */
-  border-color: #27272a;
+.purchaseButton:hover:not(:disabled) {
+  background: var(--fbr-zinc-800);
+}
+
+.purchaseButton:disabled {
+  opacity: 0.55;
+  cursor: default;
 }

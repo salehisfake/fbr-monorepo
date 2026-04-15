@@ -1,28 +1,13 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import GlassSurface from '@/components/GlassSurface'
 import FBRLogo from '@/components/FBRLogo'
 import { useCartStore } from './useCartStore'
+import { useLayoutStore } from './useLayoutStore'
 import StoreFlyout from './StoreFlyout'
+import { COLORS, CV, Z, DURATION, LAYOUT } from '@/lib/tokens'
 import styles from './MenuBar.module.css'
-
-/** e.g. "Tue Apr 7     5:53 PM" — spaces preserved via .clock { white-space: pre } */
-function formatMenubarClock(value: Date): string {
-  const datePart = value
-    .toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-    })
-    .replaceAll(',', '')
-  const timePart = value.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  })
-  return `${datePart}     ${timePart}`
-}
 
 function BagIcon({ className }: { className?: string }) {
   return (
@@ -45,11 +30,14 @@ function BagIcon({ className }: { className?: string }) {
   )
 }
 
-export default function MenuBar() {
+interface MenuBarProps {
+  isMobile?: boolean
+}
+
+export default function MenuBar({ isMobile = false }: MenuBarProps) {
   const rootRef      = useRef<HTMLDivElement | null>(null)
   const storeRef     = useRef<HTMLDivElement | null>(null)
   const flyoutRef    = useRef<HTMLDivElement | null>(null)
-  const [nowLabel, setNowLabel] = useState(() => formatMenubarClock(new Date()))
 
   const isOpen        = useCartStore((s) => s.isOpen)
   const totalQuantity = useCartStore((s) => s.totalQuantity)
@@ -57,20 +45,18 @@ export default function MenuBar() {
   const closeFlyout   = useCartStore((s) => s.closeFlyout)
   const hydrate       = useCartStore((s) => s.hydrate)
 
-  // Clock tick
-  useEffect(() => {
-    const tick = () => setNowLabel(formatMenubarClock(new Date()))
-    tick()
-    const id = window.setInterval(tick, 60_000)
-    return () => window.clearInterval(id)
-  }, [])
+  const windows             = useLayoutStore((s) => s.windows)
+  const mobileActivePage    = useLayoutStore((s) => s.mobileActivePage)
+  const setMobileActivePage = useLayoutStore((s) => s.setMobileActivePage)
+  const focusWindow         = useLayoutStore((s) => s.focusWindow)
+  const focusGraphTail      = useLayoutStore((s) => s.focusGraphTail)
 
-  // Restore cart from localStorage on mount
+  const totalDots = 1 + windows.length
+
   useEffect(() => {
     hydrate()
   }, [hydrate])
 
-  // Close flyout on outside click (flyout portaled to body — track both roots)
   useEffect(() => {
     if (!isOpen) return
     function handleMouseDown(e: MouseEvent) {
@@ -88,6 +74,17 @@ export default function MenuBar() {
     else openFlyout()
   }
 
+  const handleDotClick = (pageIndex: number) => {
+    if (pageIndex === 0) {
+      if (windows.length > 0) focusGraphTail()
+      else setMobileActivePage(0)
+      return
+    }
+    setMobileActivePage(pageIndex)
+    const w = windows[pageIndex - 1]
+    if (w) focusWindow(w.id)
+  }
+
   return (
     <GlassSurface
       ref={rootRef}
@@ -95,9 +92,9 @@ export default function MenuBar() {
       className={styles.bar}
       style={{
         position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
+        bottom: LAYOUT.WINDOW_GAP,
+        left:   LAYOUT.WINDOW_GAP,
+        right:  LAYOUT.WINDOW_GAP,
       }}
     >
       <div className={styles.brandRow}>
@@ -105,7 +102,33 @@ export default function MenuBar() {
         <span className={styles.brandTitle}>FBR dex</span>
       </div>
 
-      <div className={styles.clock}>{nowLabel}</div>
+      {isMobile && windows.length > 0 && (
+        <div className={styles.dotsZone} role='tablist' aria-label='Switch view'>
+          {Array.from({ length: totalDots }, (_, i) => {
+            const isActive = mobileActivePage === i
+            return (
+              <button
+                key={i}
+                role='tab'
+                aria-selected={isActive}
+                aria-label={i === 0 ? 'Graph view' : `Window ${i}`}
+                onClick={() => handleDotClick(i)}
+                style={{
+                  width:        isActive ? '28px' : '10px',
+                  height:       '10px',
+                  borderRadius: '1px',
+                  background:   isActive ? COLORS.BLACK : CV.zinc700FillMuted,
+                  border:       `1px solid ${COLORS.ZINC_200}`,
+                  transition:   `width ${DURATION.FAST} ease`,
+                  cursor:       'pointer',
+                  padding:      0,
+                  flexShrink:   0,
+                }}
+              />
+            )
+          })}
+        </div>
+      )}
 
       <div className={styles.storeRegion}>
         <div ref={storeRef}>

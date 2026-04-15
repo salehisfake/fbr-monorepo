@@ -2,6 +2,7 @@
 import type { ComponentType } from 'react'
 import type { AppType, AppState } from './useLayoutStore'
 import PostApp from './PostApp'
+import TagApp from './TagApp'
 
 // Each entry maps an AppType to its React component and a title-getter.
 // To add a new app: extend AppType + AppState in useLayoutStore.ts, create the
@@ -18,5 +19,9 @@ export const APP_REGISTRY: Record<AppType, AppRegistryEntry> = {
   post: {
     component: PostApp,
     getTitle:  (state: AppState['post']) => state.slug.replace(/-/g, ' '),
+  },
+  tag: {
+    component: TagApp,
+    getTitle:  (state: AppState['tag']) => `#${state.tagSlug}`,
   },
 }

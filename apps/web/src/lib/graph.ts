@@ -1,6 +1,7 @@
 // apps/web/src/lib/graph.ts
 
 import type { Post } from '@/types'
+import { slugifyTag } from './tagSlug'
 
 export type NodeType = 'entry' | 'tag'
 export type EdgeType = 'tag' | 'link'
@@ -34,10 +35,6 @@ export interface BuildWarning {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-
-function slugify(str: string): string {
-  return str.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w-]/g, '')
-}
 
 function stripCode(markdown: string): string {
   return markdown
@@ -150,7 +147,7 @@ export function buildGraphData(posts: Post[]): { data: GraphData; warnings: Buil
   // ── Entry nodes ────────────────────────────────────────────────────────────
 
   for (const post of posts) {
-    const entryId = slugify(post.slug)
+    const entryId = slugifyTag(post.slug)
 
     if (entryIds.has(entryId)) {
       warnings.push({
@@ -172,7 +169,7 @@ export function buildGraphData(posts: Post[]): { data: GraphData; warnings: Buil
 
     // Frontmatter tags
     for (const tag of post.frontmatter.tags ?? []) {
-      const tagId = `tag-${slugify(tag)}`
+      const tagId = `tag-${slugifyTag(tag)}`
       addNode({ id: tagId, label: tag, type: 'tag' })
       addEdge({ source: entryId, target: tagId, type: 'tag' })
     }
@@ -180,14 +177,14 @@ export function buildGraphData(posts: Post[]): { data: GraphData; warnings: Buil
     // Inline hashtags
     const cleanContent = stripCode(post.content)
     for (const match of cleanContent.matchAll(/#([A-Za-z0-9_-]+)/g)) {
-      const tagId = `tag-${slugify(match[1])}`
+      const tagId = `tag-${slugifyTag(match[1])}`
       addNode({ id: tagId, label: match[1], type: 'tag' })
       addEdge({ source: entryId, target: tagId, type: 'tag' })
     }
 
     // Internal markdown links
     for (const match of cleanContent.matchAll(/(?<!!)\[.+?\]\((?!http)(.+?)\)/g)) {
-      const target = slugify(match[1].replace(/\.md$/, ''))
+      const target = slugifyTag(match[1].replace(/\.md$/, ''))
       edges.push({ source: entryId, target, type: 'link' })
     }
   }

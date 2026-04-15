@@ -91,7 +91,8 @@ export const useCartStore = create<CartStore>((set, get) => ({
       if (typeof window !== 'undefined') {
         localStorage.setItem(CART_STORAGE_KEY, cart.cartId)
       }
-      set({ ...applyCart(cart), isOpen: true })
+      // Caller decides whether to open flyout (e.g. add from post vs purchase in flyout)
+      set({ ...applyCart(cart) })
     } catch (err) {
       console.error('[CartStore] addToCart failed:', err)
     } finally {

@@ -14,7 +14,7 @@ export default function ScrollbarStyles() {
     styleEl.textContent = `
       .${ROOT_CLASS} * {
         scrollbar-width: thin;
-        scrollbar-color: rgba(0, 0, 0, 0.35) transparent;
+        scrollbar-color: var(--fbr-scrollbar-thumb) transparent;
       }
 
       .${ROOT_CLASS} *::-webkit-scrollbar {
@@ -27,7 +27,7 @@ export default function ScrollbarStyles() {
       }
 
       .${ROOT_CLASS} *::-webkit-scrollbar-thumb {
-        background: rgba(0, 0, 0, 0.35);
+        background: var(--fbr-scrollbar-thumb);
         border-radius: 0;
         border: none;
       }

@@ -3,9 +3,8 @@
  *
  * Enter / exit animations for the Window component.
  *
- * Applied directly to the GlassSurface root element so that
- * backdrop-filter (which lives on the same element) is unaffected
- * by any parent stacking-context issues.
+ * Applied directly to the GlassSurface root (blur + fill only) so
+ * backdrop-filter is unaffected by parent stacking context.
  *
  * Spring bezier (0.34, 1.56, 0.64, 1) mirrors Hyprland's window-open
  * physics: fast initial expansion, slight overshoot past scale(1), settles.
