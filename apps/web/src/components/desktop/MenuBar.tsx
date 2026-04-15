@@ -1,13 +1,28 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import GlassSurface from '@/components/GlassSurface'
-import FBRLogo from '@/components/FBRLogo'
 import { useCartStore } from './useCartStore'
-import { useLayoutStore } from './useLayoutStore'
 import StoreFlyout from './StoreFlyout'
-import { COLORS, CV, Z, DURATION, LAYOUT } from '@/lib/tokens'
 import styles from './MenuBar.module.css'
+
+function SearchIcon() {
+  return (
+    <svg
+      width='13'
+      height='13'
+      viewBox='0 0 24 24'
+      fill='none'
+      stroke='currentColor'
+      strokeWidth='2.5'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+      aria-hidden
+    >
+      <circle cx='11' cy='11' r='8' />
+      <line x1='21' y1='21' x2='16.65' y2='16.65' />
+    </svg>
+  )
+}
 
 function BagIcon({ className }: { className?: string }) {
   return (
@@ -30,14 +45,9 @@ function BagIcon({ className }: { className?: string }) {
   )
 }
 
-interface MenuBarProps {
-  isMobile?: boolean
-}
-
-export default function MenuBar({ isMobile = false }: MenuBarProps) {
-  const rootRef      = useRef<HTMLDivElement | null>(null)
-  const storeRef     = useRef<HTMLDivElement | null>(null)
-  const flyoutRef    = useRef<HTMLDivElement | null>(null)
+export default function MenuBar() {
+  const storeRef  = useRef<HTMLDivElement | null>(null)
+  const flyoutRef = useRef<HTMLDivElement | null>(null)
 
   const isOpen        = useCartStore((s) => s.isOpen)
   const totalQuantity = useCartStore((s) => s.totalQuantity)
@@ -45,17 +55,7 @@ export default function MenuBar({ isMobile = false }: MenuBarProps) {
   const closeFlyout   = useCartStore((s) => s.closeFlyout)
   const hydrate       = useCartStore((s) => s.hydrate)
 
-  const windows             = useLayoutStore((s) => s.windows)
-  const mobileActivePage    = useLayoutStore((s) => s.mobileActivePage)
-  const setMobileActivePage = useLayoutStore((s) => s.setMobileActivePage)
-  const focusWindow         = useLayoutStore((s) => s.focusWindow)
-  const focusGraphTail      = useLayoutStore((s) => s.focusGraphTail)
-
-  const totalDots = 1 + windows.length
-
-  useEffect(() => {
-    hydrate()
-  }, [hydrate])
+  useEffect(() => { hydrate() }, [hydrate])
 
   useEffect(() => {
     if (!isOpen) return
@@ -74,79 +74,45 @@ export default function MenuBar({ isMobile = false }: MenuBarProps) {
     else openFlyout()
   }
 
-  const handleDotClick = (pageIndex: number) => {
-    if (pageIndex === 0) {
-      if (windows.length > 0) focusGraphTail()
-      else setMobileActivePage(0)
-      return
-    }
-    setMobileActivePage(pageIndex)
-    const w = windows[pageIndex - 1]
-    if (w) focusWindow(w.id)
-  }
-
   return (
-    <GlassSurface
-      ref={rootRef}
-      glass='MENUBAR'
-      className={styles.bar}
-      style={{
-        position: 'fixed',
-        bottom: LAYOUT.WINDOW_GAP,
-        left:   LAYOUT.WINDOW_GAP,
-        right:  LAYOUT.WINDOW_GAP,
-      }}
-    >
-      <div className={styles.brandRow}>
-        <FBRLogo />
-        <span className={styles.brandTitle}>FBR dex</span>
+    <div className={styles.bar}>
+      <div className={styles.topBlock}>
+        <button type='button' className={styles.logoButton} aria-label='Home'>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src='/FBR_Logo_Sharp.svg'
+            alt='FBR'
+            width={28}
+            height={28}
+            className={styles.logoImage}
+          />
+        </button>
+        <span className={styles.wordmark}>dex v2.0 © FBR ROM</span>
       </div>
 
-      {isMobile && windows.length > 0 && (
-        <div className={styles.dotsZone} role='tablist' aria-label='Switch view'>
-          {Array.from({ length: totalDots }, (_, i) => {
-            const isActive = mobileActivePage === i
-            return (
-              <button
-                key={i}
-                role='tab'
-                aria-selected={isActive}
-                aria-label={i === 0 ? 'Graph view' : `Window ${i}`}
-                onClick={() => handleDotClick(i)}
-                style={{
-                  width:        isActive ? '28px' : '10px',
-                  height:       '10px',
-                  borderRadius: '1px',
-                  background:   isActive ? COLORS.BLACK : CV.zinc700FillMuted,
-                  border:       `1px solid ${COLORS.ZINC_200}`,
-                  transition:   `width ${DURATION.FAST} ease`,
-                  cursor:       'pointer',
-                  padding:      0,
-                  flexShrink:   0,
-                }}
-              />
-            )
-          })}
+      <div className={styles.searchBlock}>
+        <button type='button' className={styles.searchButton} aria-label='Search'>
+          <SearchIcon />
+        </button>
+      </div>
+
+      {totalQuantity > 0 && (
+        <div className={styles.storeRegion}>
+          <div ref={storeRef}>
+            <button
+              type='button'
+              onClick={toggleFlyout}
+              aria-label='Cart'
+              className={`${styles.storeButton} ${isOpen ? styles.storeButtonOpen : ''}`}
+            >
+              <BagIcon className={styles.bagIcon} />
+              <span className={styles.cartQty}>{totalQuantity}</span>
+            </button>
+          </div>
+
+          {isOpen && <StoreFlyout ref={flyoutRef} onClose={closeFlyout} />}
         </div>
       )}
-
-      <div className={styles.storeRegion}>
-        <div ref={storeRef}>
-          <button
-            type='button'
-            onClick={toggleFlyout}
-            aria-label='Store'
-            className={`${styles.storeButton} ${isOpen ? styles.storeButtonOpen : ''}`}
-          >
-            <BagIcon className={styles.bagIcon} />
-            {totalQuantity > 0 && (
-              <span className={styles.cartQty}>{totalQuantity}</span>
-            )}
-          </button>
-        </div>
-
-        {isOpen && <StoreFlyout ref={flyoutRef} onClose={closeFlyout} />}
-      </div>
-    </GlassSurface>
+    </div>
   )
 }

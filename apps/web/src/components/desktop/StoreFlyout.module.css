@@ -14,8 +14,8 @@
 }
 
 @keyframes flyoutIn {
-  from { opacity: 0; transform: translateY(4px) scale(0.98); }
-  to   { opacity: 1; transform: translateY(0)   scale(1);    }
+  from { transform: translateY(4px) scale(0.98); }
+  to   { transform: translateY(0)   scale(1);    }
 }
 
 /* ── Product section ────────────────────────────────────────────────────────── */
@@ -179,6 +179,8 @@
 }
 
 .purchaseButton:disabled {
-  opacity: 0.55;
+  background: var(--fbr-zinc-400);
+  color: var(--fbr-zinc-100);
+  border-color: var(--fbr-zinc-300);
   cursor: default;
 }

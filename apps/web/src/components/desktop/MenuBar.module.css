@@ -1,71 +1,106 @@
-/*
- * Bottom bar — unified menubar + carousel dots.
- * Colors: var(--fbr-*) from @/lib/tokens (designTokensCss).
- * Z.MENUBAR 9995   Transition 120ms = DURATION.FAST
- */
-
 .bar {
-  height: 36px;
   z-index: 9995;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: 0 12px;
+  width: 46px;
+  height: 100vh;
+  padding: 10px 8px;
+  border: 1px solid var(--fbr-zinc-700);
+  background: var(--fbr-zinc-700);
   box-sizing: border-box;
-  font-weight: 600;
-  font-size: 10px;
-  color: var(--fbr-zinc-700);
+  pointer-events: auto;
 }
 
-.brandRow {
+.topBlock {
   display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0 6px;
-  flex-shrink: 0;
-}
-
-.brandTitle {
-  font-family: var(--font-mplus), sans-serif;
-}
-
-.dotsZone {
-  display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 10px;
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
+}
+
+.logoButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  color: var(--fbr-white);
+}
+
+.logoImage {
+  display: block;
+  width: 28px;
+  height: 28px;
+  filter: brightness(0) invert(1);
+}
+
+.wordmark {
+  font-family: var(--font-shingo), sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: none;
+  color: var(--fbr-white);
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: nowrap;
+}
+
+.searchBlock {
+  display: flex;
+  align-items: center;
+}
+
+.searchButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  min-height: 52px;
+  border: 1px solid var(--fbr-zinc-500);
+  background: transparent;
+  cursor: pointer;
+  padding: 6px 4px;
+  color: var(--fbr-white);
 }
 
 .storeRegion {
   position: relative;
-  flex-shrink: 0;
 }
 
 .storeButton {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   margin: 0;
-  padding: 0 6px;
-  height: 36px;
-  background: none;
-  border: none;
+  padding: 6px 4px;
+  width: 32px;
+  min-height: 44px;
+  background: transparent;
+  border: 1px solid var(--fbr-zinc-500);
   cursor: pointer;
-  color: var(--fbr-zinc-500);
-  transition: color 120ms ease;
+  color: var(--fbr-white);
 }
 
 .storeButtonOpen {
-  color: var(--fbr-zinc-700);
+  color: var(--fbr-white);
+  background: var(--fbr-zinc-600);
 }
 
 .cartQty {
   font-family: var(--font-mplus), sans-serif;
-  font-size: 10px;
+  font-size: 8px;
+  font-weight: 600;
   line-height: 1;
-  color: var(--fbr-zinc-700);
+  color: var(--fbr-white);
 }
 
 .bagIcon {

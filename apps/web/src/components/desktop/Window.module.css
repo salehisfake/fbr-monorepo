@@ -2,33 +2,23 @@
  * Window.module.css
  *
  * Enter / exit animations for the Window component.
- *
- * Applied directly to the GlassSurface root (blur + fill only) so
- * backdrop-filter is unaffected by parent stacking context.
- *
- * Spring bezier (0.34, 1.56, 0.64, 1) mirrors Hyprland's window-open
- * physics: fast initial expansion, slight overshoot past scale(1), settles.
  */
 
 @keyframes windowIn {
   from {
-    opacity:   0;
-    transform: scale(0.93);
+    transform: translateY(6px) scale(0.98);
   }
   to {
-    opacity:   1;
-    transform: scale(1);
+    transform: translateY(0) scale(1);
   }
 }
 
 @keyframes windowOut {
   from {
-    opacity:   1;
     transform: scale(1);
   }
   to {
-    opacity:   0;
-    transform: scale(0.93);
+    transform: translateY(4px) scale(0.98);
   }
 }
 
@@ -40,4 +30,55 @@
   animation: windowOut 140ms ease-in both;
   /* Prevent interaction during exit */
   pointer-events: none;
+}
+
+.tabBar {
+  height: 32px;
+  background: var(--fbr-white);
+  border-bottom: 1px solid var(--fbr-zinc-200);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  box-sizing: border-box;
+}
+
+.closeButton {
+  border: none;
+  background: var(--fbr-zinc-700);
+  color: transparent;
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-size: 0;
+  cursor: pointer;
+  font-family: var(--font-mplus), sans-serif;
+  border-radius: 0;
+}
+
+.title {
+  color: var(--fbr-zinc-700);
+  font-size: 15px;
+  line-height: 0.9;
+  font-family: var(--font-mplus), sans-serif;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
+  transform: translateY(-2px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.content {
+  position: relative;
+  width: 100%;
+  height: calc(100% - 32px);
+  overflow: hidden;
 }

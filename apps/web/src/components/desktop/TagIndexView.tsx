@@ -5,7 +5,6 @@ import { useLayoutStore } from './useLayoutStore'
 import { formatTagDisplay } from '@/lib/formatTagDisplay'
 import { slugifyTag } from '@/lib/tagSlug'
 import styles from './TagIndexView.module.css'
-import textStyles from './TextStyles.module.css'
 
 interface PostIndexRow {
   slug:        string
@@ -16,7 +15,7 @@ interface PostIndexRow {
 }
 
 export default function TagIndexView({ tagSlug }: { tagSlug: string }) {
-  const openBeside = useLayoutStore((s) => s.openBeside)
+  const openPost = useLayoutStore((s) => s.openPost)
   const [rows, setRows] = useState<PostIndexRow[] | null>(null)
   const [loadError, setLoadError] = useState(false)
 
@@ -51,9 +50,9 @@ export default function TagIndexView({ tagSlug }: { tagSlug: string }) {
   const onRowClick = useCallback(
     (e: React.MouseEvent, slug: string) => {
       e.stopPropagation()
-      openBeside(slug)
+      openPost(slug)
     },
-    [openBeside],
+    [openPost],
   )
 
   const label = formatTagDisplay(tagSlug)
@@ -63,7 +62,7 @@ export default function TagIndexView({ tagSlug }: { tagSlug: string }) {
       <div className={styles.inner}>
         <header className={styles.header}>
           <h1 className={styles.tagTitle}>{label}</h1>
-          <p className={`${styles.subtitle} ${textStyles.metaText}`}>
+          <p className={styles.subtitle}>
             {loadError
               ? 'Could not load index'
               : rows === null
@@ -91,7 +90,7 @@ export default function TagIndexView({ tagSlug }: { tagSlug: string }) {
 
         {!loadError && matching.length > 0 && (
           <ul className={styles.list}>
-            {matching.map((p) => (
+            {matching.map((p, idx) => (
               <li key={p.slug}>
                 <button
                   type="button"
@@ -99,10 +98,17 @@ export default function TagIndexView({ tagSlug }: { tagSlug: string }) {
                   onClick={(e) => onRowClick(e, p.slug)}
                 >
                   <div className={styles.rowInner}>
+                    <span className={styles.rowIndex}>
+                      {String(idx + 1).padStart(2, '0')}
+                    </span>
+                    <span className={styles.rowDate}>
+                      {new Date(p.pubDate).toLocaleDateString('en-GB', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: '2-digit',
+                      })}
+                    </span>
                     <p className={styles.rowTitle}>{p.title}</p>
-                    {p.description ? (
-                      <p className={styles.rowDesc}>{p.description}</p>
-                    ) : null}
                   </div>
                 </button>
               </li>
@@ -111,8 +117,8 @@ export default function TagIndexView({ tagSlug }: { tagSlug: string }) {
         )}
 
         {!loadError && matching.length > 0 && (
-          <p className={`${styles.hint} ${textStyles.capsMetaText}`}>
-            <kbd className={styles.kbd}>click</kbd> opens in a new window.
+          <p className={styles.hint}>
+            Click a row to open the note.
           </p>
         )}
       </div>

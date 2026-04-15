@@ -6,27 +6,26 @@
 /* Shell: scroll area + readable column (outside .postContent body HTML) */
 
 .root {
-  padding: 128px 0px;
+  padding: 64px 32px;
   overflow-y: auto;
   height: 100%;
   box-sizing: border-box;
 }
 
 .inner {
-  max-width: 50ch;
+  max-width: 526px;
   margin-left: auto;
   margin-right: auto;
   width: 100%;
 }
 
 .contentVisible {
-  opacity: 1;
-  transition: opacity 120ms ease;
+  visibility: visible;
 }
 
 .contentHidden {
-  opacity: 0;
-  transition: opacity 120ms ease;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .stateMessage {
@@ -36,25 +35,38 @@
 }
 
 .title {
-  font-size: 24px;
+  font-size: clamp(22px, 3.4vw, 36px);
   color: var(--fbr-zinc-700);  /* gray-700 */
-  margin: 0 0 24px 0;
-  font-family: var(--font-mplus), sans-serif;
-  letter-spacing: -0.03em;
+  margin: 0 0 28px 0;
+  font-family: var(--font-shingo), sans-serif;
+  letter-spacing: -0.015em;
   font-weight: 500;
+  text-transform: none;
+  line-height: 1.05;
 }
 
 .meta {
-  margin: 0 0 24px 0;
+  margin: 0 0 28px 0;
+  font-family: var(--font-mplus), sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  line-height: 1.35;
 }
 
 /* Markdown body (API HTML) */
 
 .postContent {
-  font-family: var(--font-noto-serif);
-  font-size: 14px;
-  line-height: 1.8;
-  color: var(--fbr-zinc-700);  /* gray-700 */
+  font-family: var(--font-mplus), sans-serif;
+  font-size: 16px;
+  line-height: 1.62;
+  letter-spacing: -0.015em;
+  font-weight: 500;
+  color: var(--fbr-zinc-500);  /* color 3 */
+}
+
+.postContent * {
+  letter-spacing: inherit;
 }
 
 /* Dividers */
@@ -66,29 +78,57 @@
 
 /* Headings */
 .postContent h1 {
-  font-family: var(--font-mplus);
-  font-size: 24px;
-  font-weight: 400;
-  margin: 1.5rem 0 1rem 0;
+  font-family: var(--font-mplus-code), monospace;
+  font-size: clamp(24px, 3.8vw, 28px);
+  font-weight: 700;
+  text-transform: uppercase;
+  margin: 52px 0 24px 0;
+  line-height: 1.05;
+  color: var(--fbr-zinc-700);
 }
 
 .postContent h2 {
-  font-family: var(--font-mplus);
-  font-size: 20px;
-  font-weight: 400;
-  margin: 1.5rem 0 1rem 0;
+  font-family: var(--font-mplus), sans-serif;
+  font-size: clamp(20px, 3.3vw, 23px);
+  font-weight: 600;
+  margin: 48px 0 20px 0;
+  line-height: 1.12;
+  color: var(--fbr-zinc-700);
 }
 
 .postContent h3 {
-  font-family: var(--font-mplus);
-  font-size: 18px;
-  font-weight: 500;
-  margin: 1.25rem 0 0.75rem 0;
+  font-family: var(--font-mplus), sans-serif;
+  font-size: clamp(16px, 2.7vw, 18px);
+  font-weight: 600;
+  margin: 36px 0 16px 0;
+  line-height: 1.2;
+  color: var(--fbr-zinc-700);
+}
+
+.postContent h4 {
+  font-family: var(--font-mplus), sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 28px 0 12px 0;
+  line-height: 1.25;
+  color: var(--fbr-zinc-700);
+}
+
+.postContent h1:first-child,
+.postContent h2:first-child,
+.postContent h3:first-child,
+.postContent h4:first-child {
+  margin-top: 0;
 }
 
 /* Paragraphs */
 .postContent p {
-  margin: 0.75rem 0;
+  margin: 0 0 18px 0;
+  line-height: 1.62;
+}
+
+.postContent p:last-child {
+  margin-bottom: 0;
 }
 
 /* Links */
@@ -114,7 +154,7 @@
 
 .postContent code {
   font-family: var(--font-mplus-code);
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .postContent pre code {
@@ -134,7 +174,7 @@
 /* Lists — ul: subtle en-dash markers; ol: clean decimal, outside position */
 .postContent ul,
 .postContent ol {
-  margin: 0.85rem 0;
+  margin: 20px 0;
 }
 
 .postContent ul {
@@ -145,7 +185,7 @@
 .postContent ul > li {
   position: relative;
   padding-left: 1.2rem;
-  margin: 0.35rem 0;
+  margin: 0.45rem 0;
 }
 
 .postContent ul > li::before {
@@ -170,7 +210,7 @@
 }
 
 .postContent ol > li {
-  margin: 0.35rem 0;
+  margin: 0.45rem 0;
   padding-left: 0.4rem;
 }
 
@@ -184,11 +224,12 @@
 .postContent blockquote {
   border: 1px solid var(--fbr-zinc-200);
   border-radius: 1px;
-  padding: 0.75rem 1rem;
+  padding: 0.9rem 1rem;
   margin-left: 0;
   margin-right: 0;
   color: var(--fbr-zinc-500);  /* gray-500 */
-  font-style: italic;
+  margin-top: 24px;
+  margin-bottom: 24px;
 }
 
 /* Tables */
@@ -259,7 +300,7 @@
 .postContent :global(.formHeading) {
   margin: 0;
   font-family: var(--font-mplus), sans-serif;
-  font-size: 16px;
+  font-size: 14px;
   letter-spacing: 0.01em;
   color: var(--fbr-zinc-700);
   text-align: center;
@@ -268,7 +309,7 @@
 .postContent :global(.formSubheading) {
   margin: 0;
   font-family: var(--font-noto-serif);
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.6;
   color: var(--fbr-zinc-600);
   text-align: center;
@@ -284,7 +325,7 @@
 .postContent :global(.formLabel) {
   display: block;
   margin-bottom: 0.42rem;
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 0.02em;
   color: var(--fbr-zinc-600);
   text-transform: none;
@@ -299,7 +340,7 @@
   background: var(--fbr-white);
   color: var(--fbr-zinc-700);
   font-family: var(--font-noto-serif);
-  font-size: 14px;
+  font-size: 13px;
   padding: 0.6rem 0.7rem;
   transition: border-color 120ms ease, background-color 120ms ease;
 }
@@ -309,7 +350,7 @@
   left: -10000px;
   width: 1px;
   height: 1px;
-  opacity: 0;
+  clip-path: inset(50%);
   pointer-events: none;
 }
 
@@ -333,13 +374,13 @@
 .postContent :global(.formError) {
   margin: -0.2rem 0 0;
   color: var(--fbr-zinc-700);
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .postContent :global(.formLegal) {
   margin: -0.15rem 0 0;
   font-family: var(--font-mplus), sans-serif;
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 0.02em;
   color: var(--fbr-zinc-500);
   text-align: center;
@@ -355,7 +396,7 @@
   background: var(--fbr-zinc-100);
   color: var(--fbr-zinc-700);
   font-family: var(--font-mplus), sans-serif;
-  font-size: 12px;
+  font-size: 11px;
   letter-spacing: 0.03em;
   padding: 0.5rem 0.9rem;
   cursor: pointer;
@@ -367,7 +408,9 @@
 }
 
 .postContent :global(.formSubmit:disabled) {
-  opacity: 0.7;
+  background: var(--fbr-zinc-200);
+  color: var(--fbr-zinc-500);
+  border-color: var(--fbr-zinc-300);
   cursor: default;
 }
 
@@ -378,7 +421,7 @@
 }
 
 .postContent :global(.formArrow) {
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1;
   color: var(--fbr-zinc-700);
 }
@@ -387,5 +430,15 @@
   margin: 1.25rem 0;
   color: var(--fbr-zinc-700);
   font-family: var(--font-noto-serif);
-  font-size: 14px;
+  font-size: 13px;
+}
+
+@media (max-width: 700px) {
+  .root {
+    padding: 48px 24px;
+  }
+
+  .inner {
+    max-width: 100%;
+  }
 }

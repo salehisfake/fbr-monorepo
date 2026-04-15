@@ -1,23 +1,22 @@
 // apps/web/src/app/layout.tsx
 import './mplus-fonts.css'
-import FilmGrainOverlay from '@/components/FilmGrainOverlay'
-import ScrollbarStyles from '@/components/ScrollbarStyles'
-import { designTokensCss } from '@/lib/tokens'
+import { designTokensCss, scrollbarCss } from '@/lib/tokens'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" style={{ height: '100%' }}>
+    <html lang="en" className="fbr-scrollbars" style={{ height: '100%' }}>
       <head>
         <style
           id="fbr-design-tokens"
-          // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{ __html: designTokensCss() }}
+        />
+        <style
+          id="fbr-scrollbar"
+          dangerouslySetInnerHTML={{ __html: scrollbarCss() }}
         />
       </head>
       <body style={{ margin: 0, height: '100%', fontFamily: 'var(--font-mplus)' }}>
-        <ScrollbarStyles />
         {children}
-        <FilmGrainOverlay />
       </body>
     </html>
   )

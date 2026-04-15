@@ -2,9 +2,8 @@
 
 import { useEffect, forwardRef } from 'react'
 import { createPortal } from 'react-dom'
-import GlassSurface from '@/components/GlassSurface'
 import { useCartStore } from './useCartStore'
-import { Z, LAYOUT } from '@/lib/tokens'
+import { COLORS, Z, LAYOUT } from '@/lib/tokens'
 import styles from './StoreFlyout.module.css'
 
 // ── Product configuration from env ────────────────────────────────────────────
@@ -27,7 +26,6 @@ const StoreFlyout = forwardRef<HTMLDivElement, StoreFlyoutProps>(function StoreF
   ref,
 ) {
   const lines          = useCartStore((s) => s.lines)
-  const checkoutUrl    = useCartStore((s) => s.checkoutUrl)
   const totalQuantity  = useCartStore((s) => s.totalQuantity)
   const isLoading      = useCartStore((s) => s.isLoading)
   const addToCart      = useCartStore((s) => s.addToCart)
@@ -59,15 +57,16 @@ const StoreFlyout = forwardRef<HTMLDivElement, StoreFlyoutProps>(function StoreF
   }
 
   const panel = (
-    <GlassSurface
+    <div
       ref={ref}
-      glass='STORE_FLYOUT'
       style={{
         position:  'fixed',
-        bottom:    LAYOUT.WINDOW_GAP + LAYOUT.MENUBAR_HEIGHT + 4,
+        top:       52,
         right:     LAYOUT.WINDOW_GAP,
         zIndex:    Z.DROPDOWN,
         isolation: 'isolate',
+        background: COLORS.WHITE,
+        border: `1px solid ${COLORS.ZINC_200}`,
       }}
       className={styles.flyout}
     >
@@ -133,7 +132,7 @@ const StoreFlyout = forwardRef<HTMLDivElement, StoreFlyoutProps>(function StoreF
               : 'Coming soon'}
         </button>
       </div>
-    </GlassSurface>
+    </div>
   )
 
   if (typeof document === 'undefined') return null

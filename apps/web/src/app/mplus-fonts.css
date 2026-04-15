@@ -1,6 +1,14 @@
 /* Auto-generated from FontBase MPlus.zip */
 /* Source files live in /public/fonts/mplus */
 @font-face {
+  font-family: 'FBR Shingo';
+  src: url('/fonts/FBR-SHINGO%20Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
   font-family: 'MPlus 1 Code Nerd';
   src: url('/fonts/mplus/M%2B1CodeNerdFont-Bold.ttf') format('truetype');
   font-weight: 700;
@@ -796,4 +804,5 @@
   --font-mplus: 'MPlus 1 Nerd', sans-serif;
   --font-noto-serif: 'MPlus 2 Nerd Propo', 'MPlus 2 Nerd', sans-serif;
   --font-mplus-code: 'MPlus 1 Code Nerd', 'MPlus CodeLat60 Nerd Mono', monospace;
+  --font-shingo: 'FBR Shingo', var(--font-mplus);
 }

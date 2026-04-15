@@ -18,15 +18,48 @@ interface Props {
   simPreset: SimPreset
 }
 
-const SIM_PRESET_CONFIG: Record<SimPreset, { linkDistance: number; linkStrength: number; charge: number; collidePadding: number }> = {
-  calm: { linkDistance: 76, linkStrength: 0.35, charge: -220, collidePadding: 9 },
-  balanced: { linkDistance: 60, linkStrength: 0.5, charge: -300, collidePadding: 6 },
-  dynamic: { linkDistance: 50, linkStrength: 0.75, charge: -380, collidePadding: 4 },
+interface PresetConfig {
+  linkDistance: number
+  charge:      number
+  chargeMax:   number
+  centering:   number
+  velocityDecay: number
+  alphaDecay:    number
+}
+
+const SIM_PRESET_CONFIG: Record<SimPreset, PresetConfig> = {
+  calm: {
+    linkDistance:   150,
+    charge:        -300,
+    chargeMax:     520,
+    centering:     0.022,
+    velocityDecay: 0.44,
+    alphaDecay:    0.018,
+  },
+  balanced: {
+    linkDistance:   128,
+    charge:        -360,
+    chargeMax:     620,
+    centering:     0.03,
+    velocityDecay: 0.38,
+    alphaDecay:    0.022,
+  },
+  dynamic: {
+    linkDistance:   108,
+    charge:        -430,
+    chargeMax:     720,
+    centering:     0.042,
+    velocityDecay: 0.30,
+    alphaDecay:    0.028,
+  },
+}
+
+function estimateNodeRadius(): number {
+  return getNodeSize() / 2
 }
 
 export function useGraphSimulation({ nodes, edges, width, height, onTick, simPreset }: Props) {
   const simulationRef = useRef<d3.Simulation<SimNode, SimEdge> | null>(null)
-  const forceXRef = useRef<d3.ForceX<SimNode> | null>(null)
 
   useEffect(() => {
     if (!width || !height || !nodes.length) return
@@ -35,34 +68,31 @@ export function useGraphSimulation({ nodes, edges, width, height, onTick, simPre
     const simNodes = nodes as SimNode[]
     const simEdges = edges as SimEdge[]
 
-    const forceX = d3.forceX<SimNode>(width / 2).strength((d) => {
-      if ((d as GraphNode).type === 'tag') return 0.055 + Math.min((d.weight ?? 1) * 0.002, 0.02)
-      return 0.095
-    })
-    forceXRef.current = forceX
-
     const sim = d3.forceSimulation<SimNode>(simNodes)
       .force('link',
         d3.forceLink<SimNode, SimEdge>(simEdges)
           .id((d) => d.id)
           .distance(preset.linkDistance)
-          .strength(preset.linkStrength)
       )
-      .force('charge', d3.forceManyBody().strength(preset.charge))
+      .force('charge',
+        d3.forceManyBody<SimNode>()
+          .strength(preset.charge)
+          .distanceMax(preset.chargeMax)
+      )
       .force('collide',
         d3.forceCollide<SimNode>()
-          .radius((d) => getNodeSize(d.weight) / 2 + preset.collidePadding)
+          .radius(() => estimateNodeRadius() + 4)
+          .iterations(1)
       )
-      .force('x', forceX)
-      .force('y', d3.forceY<SimNode>(height / 2).strength(0.08))
+      .force('x', d3.forceX<SimNode>(width / 2).strength(preset.centering))
+      .force('y', d3.forceY<SimNode>(height / 2).strength(preset.centering))
+      .velocityDecay(preset.velocityDecay)
+      .alphaDecay(preset.alphaDecay)
       .on('tick', onTick as () => void)
 
     simulationRef.current = sim
-    return () => {
-      sim.stop()
-      forceXRef.current = null
-    }
+    return () => { sim.stop() }
   }, [nodes, edges, width, height, onTick, simPreset])
 
-  return { simulationRef, forceXRef }
+  return { simulationRef }
 }

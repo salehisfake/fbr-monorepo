@@ -1,5 +1,6 @@
 // apps/web/src/components/graph/graphUtils.ts
 
+import type * as d3 from 'd3'
 import { COLORS } from './graphConstants'
 
 export type NodeType = 'entry' | 'tag'
@@ -20,17 +21,21 @@ export interface NodeStyle {
   iconPath?:   string
 }
 
-/**
- * Returns the visual half-size of a node in SVG units.
- * Uses a sqrt scale so weight differences are visible without extreme
- * size variance — accumulated weights can reach 50+.
- */
-export function getNodeSize(weight: number): number {
-  return 4 + Math.sqrt(weight) * 2.5
+/** Horizontal gap between a node icon and its label text. */
+export const LABEL_GAP = 6
+
+/** One size for every node square and its label (font matches node height). */
+export const UNIFORM_NODE_SIZE = 10
+export const LABEL_FONT_SIZE = 12
+
+/** Visual size of a node in SVG units (width/height of the square icon). */
+export function getNodeSize(): number {
+  return UNIFORM_NODE_SIZE
 }
 
-export function getNodeStyle(type: NodeType, weight: number): NodeStyle {
-  const size = getNodeSize(weight)
+export function getNodeStyle(type: NodeType): NodeStyle {
+  const size = getNodeSize()
+  const fontSize = LABEL_FONT_SIZE
 
   switch (type) {
     case 'tag':
@@ -40,10 +45,10 @@ export function getNodeStyle(type: NodeType, weight: number): NodeStyle {
         fill:        COLORS.BLACK,
         stroke:      COLORS.BLACK,
         strokeWidth: 0,
-        fontSize:    8,
+        fontSize,
         textColor:   COLORS.BLACK,
-        textX:       0,
-        textY:       size / 2 + 12,
+        textX:       size / 2 + LABEL_GAP,
+        textY:       0.75,
         labelClass:  'tagLabel',
         iconMode:    'shape',
       }
@@ -55,18 +60,18 @@ export function getNodeStyle(type: NodeType, weight: number): NodeStyle {
         fill:        COLORS.BLACK,
         stroke:      COLORS.BLACK,
         strokeWidth: 0,
-        fontSize:    8,
+        fontSize,
         textColor:   COLORS.BLACK,
-        textX:       0,
-        textY:       size / 2 + 12,
+        textX:       size / 2 + LABEL_GAP,
+        textY:       0.75,
         labelClass:  'entryLabel',
         iconMode:    'shape',
       }
   }
 }
 
-export function appendShape(
-  el: d3.Selection<SVGGElement, any, any, any>,
+export function appendShape<Datum>(
+  el: d3.Selection<SVGGElement, Datum, null, undefined>,
   style: NodeStyle
 ) {
   if (style.iconMode === 'image' && style.iconPath) {
@@ -77,6 +82,7 @@ export function appendShape(
       .attr('height', style.size)
       .attr('x', -style.size / 2)
       .attr('y', -style.size / 2)
+      .attr('shape-rendering', 'crispEdges')
     return
   }
 
@@ -89,6 +95,7 @@ export function appendShape(
         .attr('fill',         style.fill)
         .attr('stroke',       style.stroke)
         .attr('stroke-width', style.strokeWidth)
+        .attr('shape-rendering', 'crispEdges')
         .attr('vector-effect', 'non-scaling-stroke')
       break
     case 'rect':
@@ -102,6 +109,7 @@ export function appendShape(
         .attr('fill',         style.fill)
         .attr('stroke',       style.stroke)
         .attr('stroke-width', style.strokeWidth)
+        .attr('shape-rendering', 'crispEdges')
         .attr('vector-effect', 'non-scaling-stroke')
       break
   }

@@ -7,8 +7,6 @@ import { MDXRemote } from 'next-mdx-remote'
 import ContactForm from '@/components/forms/ContactForm'
 import NewsletterForm from '@/components/forms/NewsletterForm'
 import PreorderCTA from '@/components/store/PreorderCTA'
-import { formatTagDisplay } from '@/lib/formatTagDisplay'
-import textStyles from './TextStyles.module.css'
 
 const mdxComponents = {
   ContactForm,
@@ -31,13 +29,6 @@ export default function PostContent({ slug }: { slug: string }) {
     <div className={styles.root}>
       <div className={`${styles.inner} ${isVisible ? styles.contentVisible : styles.contentHidden}`}>
         <p className={styles.title}>{post.title}</p>
-        <p className={`${styles.meta} ${textStyles.metaText}`}>
-          {new Date(post.pubDate).toLocaleDateString('en-GB', {
-            day: 'numeric', month: 'long', year: 'numeric',
-          })}
-          {post.tags.length > 0 &&
-            ` · ${post.tags.map((t) => formatTagDisplay(t)).join(', ')}`}
-        </p>
 
         <div className={styles.postContent}>
           <MDXRemote {...post.mdxSource} components={mdxComponents} />
