@@ -6,14 +6,25 @@ import { usePost } from './usePost'
 import { MDXRemote } from 'next-mdx-remote'
 import ContactForm from '@/components/forms/ContactForm'
 import NewsletterForm from '@/components/forms/NewsletterForm'
-import PreorderCTA from '@/components/store/PreorderCTA'
+import EmbeddedStore from '@/components/store/EmbeddedStore'
+import Link from 'next/link'
 import { formatTagDisplay } from '@/lib/formatTagDisplay'
-import textStyles from './TextStyles.module.css'
+import { slugifyTag } from '@/lib/tagSlug'
+import { postPathFromSlug, tagPathFromSlug } from './useLayoutStore'
 
 const mdxComponents = {
   ContactForm,
   NewsletterForm,
-  PreorderCTA,
+  EmbeddedStore,
+}
+
+/** Display title for a connection slug (linked post). */
+function formatConnectionTitle(slug: string): string {
+  return slug
+    .split(/[-_]+/)
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ')
 }
 
 export default function PostContent({ slug }: { slug: string }) {
@@ -31,17 +42,43 @@ export default function PostContent({ slug }: { slug: string }) {
     <div className={styles.root}>
       <div className={`${styles.inner} ${isVisible ? styles.contentVisible : styles.contentHidden}`}>
         <p className={styles.title}>{post.title}</p>
-        <p className={`${styles.meta} ${textStyles.metaText}`}>
-          {new Date(post.pubDate).toLocaleDateString('en-GB', {
-            day: 'numeric', month: 'long', year: 'numeric',
-          })}
-          {post.tags.length > 0 &&
-            ` · ${post.tags.map((t) => formatTagDisplay(t)).join(', ')}`}
-        </p>
 
         <div className={styles.postContent}>
           <MDXRemote {...post.mdxSource} components={mdxComponents} />
         </div>
+
+        {(post.tags.some((t) => slugifyTag(t)) ||
+          post.connections.filter(Boolean).length > 0) && (
+          <section className={styles.metaSection} aria-label="Tags and related posts">
+            {post.tags.some((t) => slugifyTag(t)) && (
+              <ul className={styles.tagList}>
+                {post.tags.map((t) => {
+                  const tagSlug = slugifyTag(t)
+                  if (!tagSlug) return null
+                  return (
+                    <li key={tagSlug}>
+                      <Link href={tagPathFromSlug(tagSlug)} className={styles.tagChip}>
+                        {formatTagDisplay(t)}
+                      </Link>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+
+            {post.connections.filter(Boolean).length > 0 && (
+              <ul className={styles.connectionList}>
+                {post.connections.filter(Boolean).map((connSlug) => (
+                  <li key={connSlug}>
+                    <Link href={postPathFromSlug(connSlug)} className={styles.connectionLink}>
+                      {formatConnectionTitle(connSlug)}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
       </div>
     </div>
   )

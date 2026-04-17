@@ -6,7 +6,8 @@
 /* Shell: scroll area + readable column (outside .postContent body HTML) */
 
 .root {
-  padding: 128px 0px;
+  /* Keep horizontal breathing room at every viewport/window size. */
+  padding: 64px clamp(14px, 3.2vw, 32px);
   overflow-y: auto;
   height: 100%;
   box-sizing: border-box;
@@ -37,15 +38,71 @@
 
 .title {
   font-size: 24px;
-  color: var(--fbr-zinc-700);  /* gray-700 */
+  color: var(--fbr-zinc-900);  /* gray-700 */
   margin: 0 0 24px 0;
   font-family: var(--font-mplus), sans-serif;
   letter-spacing: -0.03em;
   font-weight: 500;
 }
 
-.meta {
-  margin: 0 0 24px 0;
+.metaSection {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--fbr-zinc-200);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.connectionList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.connectionLink {
+  font-family: var(--font-mplus), sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--fbr-zinc-700);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.connectionLink:hover {
+  color: var(--fbr-zinc-900);
+}
+
+.tagChip {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.2;
+  border: 1px solid var(--fbr-zinc-200);
+  border-radius: 2px;
+  background: var(--fbr-zinc-50);
+  color: var(--fbr-zinc-500);
+  text-decoration: none;
+  font-family: var(--font-mplus), sans-serif;
+}
+
+.tagChip:hover {
+  background: var(--fbr-zinc-100);
 }
 
 /* Markdown body (API HTML) */
@@ -54,7 +111,7 @@
   font-family: var(--font-noto-serif);
   font-size: 14px;
   line-height: 1.8;
-  color: var(--fbr-zinc-700);  /* gray-700 */
+  color: var(--fbr-zinc-900);  /* gray-700 */
 }
 
 /* Dividers */

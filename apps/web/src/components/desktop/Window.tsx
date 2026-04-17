@@ -74,7 +74,7 @@ export default function Window({
 
   return (
     <GlassSurface
-      className={isClosing ? styles.closing : styles.entering}
+      className={`${styles.windowRoot} ${isClosing ? styles.closing : styles.entering}`}
       active={glassOn}
       glass='WINDOW'
       glassFillAlphaScale={isActive ? 1 : 0.1}
@@ -118,33 +118,31 @@ export default function Window({
         }}
       />
 
-      <button
-        onClick={handleClose}
-        onMouseEnter={() => setIsCloseHovered(true)}
-        onMouseMove={(e) => setCloseTooltipPos({ x: e.clientX + 10, y: e.clientY + 12 })}
-        onMouseLeave={() => setIsCloseHovered(false)}
-        style={{
-          position:       'absolute',
-          top:            '16px',
-          left:           '16px',
-          zIndex:         Z.CHROME,
-          width:          '14px',
-          height:         '14px',
-          display:        'flex',
-          alignItems:     'center',
-          justifyContent: 'center',
-          background:     'transparent',
-          border:         'none',
-          cursor:         'pointer',
-          fontSize:       '14px',
-          color:          !effectiveVisible ? 'transparent' : COLORS.MID,
-          lineHeight:     1,
-          padding:        0,
-          fontFamily:     'var(--font-mplus), sans-serif',
-          userSelect:     'none',
-        }}
-        aria-label="Close window"
-      >
+      <div className={styles.tabBar} style={{ zIndex: Z.CHROME }}>
+        <button
+          type="button"
+          onClick={handleClose}
+          onMouseEnter={() => setIsCloseHovered(true)}
+          onMouseMove={(e) => setCloseTooltipPos({ x: e.clientX + 10, y: e.clientY + 12 })}
+          onMouseLeave={() => setIsCloseHovered(false)}
+          style={{
+            width:          '14px',
+            height:         '14px',
+            display:        'flex',
+            alignItems:     'center',
+            justifyContent: 'center',
+            background:     'transparent',
+            border:         'none',
+            cursor:         'pointer',
+            fontSize:       '14px',
+            color:          !effectiveVisible ? 'transparent' : COLORS.ZINC_600,
+            lineHeight:     1,
+            padding:        0,
+            fontFamily:     'var(--font-mplus), sans-serif',
+            userSelect:     'none',
+          }}
+          aria-label="Close window"
+        >
         {(() => {
           const iconScale = isCloseHovered ? 1 : 0.5
           return (
@@ -173,7 +171,7 @@ export default function Window({
                   />
                 </filter>
               </defs>
-              <rect x="0" y="0" width="10" height="10" fill={!effectiveVisible ? 'transparent' : COLORS.MID} />
+              <rect x="0" y="0" width="10" height="10" fill={!effectiveVisible ? 'transparent' : COLORS.ZINC_600} />
               <rect
                 x="0"
                 y="0"
@@ -187,7 +185,8 @@ export default function Window({
             </svg>
           )
         })()}
-      </button>
+        </button>
+      </div>
 
       {isCloseHovered && effectiveVisible && typeof document !== 'undefined' &&
         createPortal(
@@ -216,13 +215,10 @@ export default function Window({
         )}
 
       <div
+        className={styles.body}
         style={{
-          position:      'relative',
           zIndex:        Z.CONTENT,
-          width:         '100%',
-          height:        '100%',
           opacity:       effectiveVisible ? 1 : 0,
-          overflow:      'hidden',
           pointerEvents: effectiveVisible ? 'auto' : 'none',
         }}
       >

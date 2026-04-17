@@ -12,10 +12,27 @@ import {
 } from './useLayoutStore'
 import { COLORS, Z, RADIUS, BREAKPOINTS, LAYOUT, DURATION } from '@/lib/tokens'
 
-/** Width of one desktop pane: two panes + gutter fill `100vw - 2*WINDOW_GAP`. */
+/** Max width for a desktop window cell (pane); strip pan math must stay in sync. */
+const DESKTOP_PANE_MAX_WIDTH_PX = 700
+const DESKTOP_MENUBAR_WIDTH_PX = LAYOUT.MENUBAR_HEIGHT
+const MOBILE_SWIPE_HINT_DISMISSED_KEY = 'fbr_mobile_swipe_hint_dismissed'
+const MOBILE_SWIPE_PEEKED_KEY = 'fbr_mobile_swipe_peeked'
+
+/** Width of one desktop pane: half of strip minus gaps, capped on wide viewports. */
 function desktopPaneWidthCss(): string {
   const { WINDOW_GAP: inset, WINDOW_GUTTER: gutter } = LAYOUT
-  return `calc((100vw - ${2 * inset}px - ${gutter}px) / 2)`
+  const raw = `calc((100vw - ${2 * inset}px - ${gutter}px - ${DESKTOP_MENUBAR_WIDTH_PX}px) / 2)`
+  return `min(${raw}, ${DESKTOP_PANE_MAX_WIDTH_PX}px)`
+}
+
+/**
+ * Horizontal offset per strip index: pane width + gutter.
+ * Must match `desktopPaneWidthCss()` + WINDOW_GUTTER so panning stays aligned when max-width applies.
+ */
+function desktopStripStepCss(): string {
+  const { WINDOW_GAP: inset, WINDOW_GUTTER: gutter } = LAYOUT
+  const rawPane = `calc((100vw - ${2 * inset}px - ${gutter}px - ${DESKTOP_MENUBAR_WIDTH_PX}px) / 2)`
+  return `min(${rawPane}, ${DESKTOP_PANE_MAX_WIDTH_PX}px) + ${gutter}px`
 }
 
 // ── Hooks ─────────────────────────────────────────────────────────────────────
@@ -154,7 +171,7 @@ export default function Desktop({ initialSlug }: DesktopProps) {
         height:     '100vh',
         position:   'relative',
         overflow:   'hidden',
-        paddingBottom: `${2 * LAYOUT.WINDOW_GAP + LAYOUT.MENUBAR_HEIGHT}px`,
+        paddingBottom: `${2 * LAYOUT.WINDOW_GAP}px`,
         boxSizing:  'border-box',
       }}
     >
@@ -174,9 +191,9 @@ export default function Desktop({ initialSlug }: DesktopProps) {
         style={{
           position:      'absolute',
           top:           LAYOUT.WINDOW_GAP,
-          left:          LAYOUT.WINDOW_GAP,
+          left:          LAYOUT.WINDOW_GAP + DESKTOP_MENUBAR_WIDTH_PX,
           right:         LAYOUT.WINDOW_GAP,
-          bottom:        2 * LAYOUT.WINDOW_GAP + LAYOUT.MENUBAR_HEIGHT,
+          bottom:        2 * LAYOUT.WINDOW_GAP,
           overflow:      'hidden',
           zIndex:        Z.CHROME,
           pointerEvents: 'none',
@@ -188,7 +205,7 @@ export default function Desktop({ initialSlug }: DesktopProps) {
             gap:           `${LAYOUT.WINDOW_GUTTER}px`,
             width:         'max-content',
             height:        '100%',
-            transform:     `translateX(calc(${-viewOffset} * (100vw - ${2 * LAYOUT.WINDOW_GAP}px + ${LAYOUT.WINDOW_GUTTER}px) / 2))`,
+            transform:     `translateX(calc(${-viewOffset} * (${desktopStripStepCss()})))`,
             transition:    `transform ${DURATION.STRIP_PAN} cubic-bezier(0.22, 1, 0.36, 1)`,
             pointerEvents: 'none',
           }}
@@ -292,6 +309,23 @@ function MobileLayout() {
   const touchDyRef = useRef(0)
   const swipeIntentRef = useRef<'none' | 'horizontal' | 'vertical'>('none')
   const [dragOffsetPx, setDragOffsetPx] = useState(0)
+  const [hintDismissed, setHintDismissed] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false
+    try {
+      return window.localStorage.getItem(MOBILE_SWIPE_HINT_DISMISSED_KEY) === '1'
+    } catch {
+      return false
+    }
+  })
+  const [isPeeking, setIsPeeking] = useState(false)
+  const peekTimersRef = useRef<number[]>([])
+  const peekStartedRef = useRef(false)
+  const showSwipeHint = windows.length > 0 && mobileActivePage === 0 && !hintDismissed
+
+  const clearPeekTimers = useCallback(() => {
+    peekTimersRef.current.forEach((id) => window.clearTimeout(id))
+    peekTimersRef.current = []
+  }, [])
 
   const goToPage = useCallback((page: number) => {
     const clamped = Math.max(0, Math.min(page, windows.length))
@@ -309,14 +343,64 @@ function MobileLayout() {
     goToPage(windows.length)
   }, [mobileActivePage, windows.length, goToPage])
 
+  const dismissSwipeHint = useCallback(() => {
+    setHintDismissed(true)
+    try {
+      window.localStorage.setItem(MOBILE_SWIPE_HINT_DISMISSED_KEY, '1')
+    } catch {
+      // Ignore storage availability issues.
+    }
+  }, [])
+
+  useEffect(() => {
+    if (peekStartedRef.current) return
+    if (windows.length === 0) return
+    if (mobileActivePage !== 0) return
+
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reducedMotion) {
+      peekStartedRef.current = true
+      return
+    }
+
+    try {
+      if (window.localStorage.getItem(MOBILE_SWIPE_PEEKED_KEY) === '1') {
+        peekStartedRef.current = true
+        return
+      }
+      window.localStorage.setItem(MOBILE_SWIPE_PEEKED_KEY, '1')
+    } catch {
+      // Continue without persistence.
+    }
+
+    peekStartedRef.current = true
+    const startId = window.setTimeout(() => {
+      setIsPeeking(true)
+      setDragOffsetPx(-16)
+    }, 260)
+    const settleId = window.setTimeout(() => {
+      setDragOffsetPx(0)
+    }, 520)
+    const endId = window.setTimeout(() => {
+      setIsPeeking(false)
+    }, 760)
+    peekTimersRef.current = [startId, settleId, endId]
+
+    return clearPeekTimers
+  }, [windows.length, mobileActivePage, clearPeekTimers])
+
+  useEffect(() => clearPeekTimers, [clearPeekTimers])
+
   const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    clearPeekTimers()
+    setIsPeeking(false)
     touchStartXRef.current = e.touches[0]?.clientX ?? null
     touchStartYRef.current = e.touches[0]?.clientY ?? null
     touchDxRef.current = 0
     touchDyRef.current = 0
     swipeIntentRef.current = 'none'
     setDragOffsetPx(0)
-  }, [])
+  }, [clearPeekTimers])
 
   const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
     if (touchStartXRef.current === null || touchStartYRef.current === null) return
@@ -350,6 +434,7 @@ function MobileLayout() {
       touchDyRef.current = 0
       swipeIntentRef.current = 'none'
       setDragOffsetPx(0)
+      setIsPeeking(false)
       return
     }
 
@@ -367,6 +452,7 @@ function MobileLayout() {
     touchDyRef.current = 0
     swipeIntentRef.current = 'none'
     setDragOffsetPx(0)
+    setIsPeeking(false)
   }, [mobileActivePage, goToPage])
 
   return (
@@ -380,7 +466,7 @@ function MobileLayout() {
         height:     '100vh',
         position:   'relative',
         overflow:   'hidden',
-        paddingBottom: `${2 * LAYOUT.WINDOW_GAP + LAYOUT.MENUBAR_HEIGHT}px`,
+        paddingTop: `${LAYOUT.MENUBAR_HEIGHT}px`,
         boxSizing:  'border-box',
       }}
     >
@@ -390,22 +476,78 @@ function MobileLayout() {
         <DexGraph enableWindowOffset={false} />
       </div>
 
+      {showSwipeHint && (
+        <div
+          role='status'
+          aria-live='polite'
+          style={{
+            position: 'absolute',
+            right: 12,
+            top: LAYOUT.MENUBAR_HEIGHT + 12,
+            zIndex: Z.CHROME + 2,
+            display: 'inline-flex',
+            alignItems: 'stretch',
+            gap: 0,
+            padding: 0,
+            fontFamily: 'var(--font-mplus), sans-serif',
+            fontSize: 11,
+            lineHeight: 1,
+            color: COLORS.BLACK,
+            background: COLORS.OFFWHITE,
+            border: `1px solid ${COLORS.ZINC_200}`,
+            borderRadius: RADIUS.SM,
+          }}
+        >
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '7px 10px',
+            }}
+          >
+            Swipe to navigate
+          </span>
+          <button
+            type='button'
+            onClick={dismissSwipeHint}
+            aria-label='Dismiss swipe hint'
+            style={{
+              alignSelf: 'auto',
+              width: 22,
+              border: 'none',
+              background: COLORS.MID,
+              padding: 0,
+              margin: 0,
+              cursor: 'pointer',
+              color: COLORS.OFFWHITE,
+              fontSize: 11,
+              fontWeight: 600,
+              lineHeight: 1,
+            }}
+          >
+            x
+          </button>
+        </div>
+      )}
+
       {/* Swipe track: page 0 is intentionally empty so the graph remains visible. */}
       <div
         style={{
           position:   'absolute',
-          top:        0,
+          top:        LAYOUT.MENUBAR_HEIGHT,
           left:       0,
           right:      0,
-          bottom:     2 * LAYOUT.WINDOW_GAP + LAYOUT.MENUBAR_HEIGHT,
+          bottom:     0,
           zIndex:     Z.CHROME,
           display:    'flex',
           width:      `${totalPages * 100}vw`,
-          height:     `calc(100% - ${2 * LAYOUT.WINDOW_GAP + LAYOUT.MENUBAR_HEIGHT}px)`,
+          height:     `calc(100% - ${LAYOUT.MENUBAR_HEIGHT}px)`,
           transform:  `translateX(calc(${-mobileActivePage * 100}vw + ${dragOffsetPx}px))`,
-          transition: dragOffsetPx === 0
-            ? `transform ${DURATION.STRIP_PAN} cubic-bezier(0.22, 1, 0.36, 1)`
-            : 'none',
+          transition: isPeeking
+            ? 'transform 220ms cubic-bezier(0.16, 1, 0.3, 1)'
+            : dragOffsetPx === 0
+              ? `transform ${DURATION.STRIP_PAN} cubic-bezier(0.22, 1, 0.36, 1)`
+              : 'none',
           pointerEvents: mobileActivePage === 0 ? 'none' : 'auto',
         }}
       >

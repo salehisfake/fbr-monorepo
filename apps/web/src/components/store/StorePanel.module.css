@@ -1,0 +1,100 @@
+/*
+ * Store panel (embedded in posts). Colors: var(--fbr-*) from @/lib/tokens.
+ */
+
+.embeddedWrap {
+  margin: 1rem 0;
+  width: 100%;
+  max-width: 280px;
+}
+
+.embeddedSurface {
+  overflow: visible;
+}
+
+/* ── Product section ────────────────────────────────────────────────────────── */
+
+.productSection {
+  padding: 12px 14px 14px;
+}
+
+.productImage {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--fbr-zinc-200);
+  border-radius: 1px;
+  margin-bottom: 10px;
+  object-fit: cover;
+}
+
+.productImagePlaceholder {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background-color: var(--fbr-zinc-100);
+  border: 1px solid var(--fbr-zinc-200);
+  border-radius: 1px;
+  margin-bottom: 10px;
+}
+
+.productMeta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.productTitle {
+  font-family: var(--font-mplus), sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fbr-zinc-700);
+  letter-spacing: -0.01em;
+}
+
+.productPrice {
+  font-family: var(--font-mplus), sans-serif;
+  font-size: 11px;
+  color: var(--fbr-zinc-600);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.productDesc {
+  font-family: var(--font-noto-serif);
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--fbr-zinc-500);
+  margin: 0 0 12px 0;
+}
+
+.purchaseWrap {
+  padding: 12px 14px 14px;
+}
+
+.purchaseButton {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--fbr-zinc-200);
+  border-radius: 1px;
+  background: var(--fbr-zinc-700);
+  color: var(--fbr-zinc-50);
+  font-family: var(--font-mplus), sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  padding: 8px 12px;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 120ms ease;
+  box-sizing: border-box;
+}
+
+.purchaseButton:hover:not(:disabled) {
+  background: var(--fbr-zinc-800);
+}
+
+.purchaseButton:disabled {
+  opacity: 0.55;
+  cursor: default;
+}

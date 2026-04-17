@@ -19,8 +19,18 @@ export interface Cart {
   totalQuantity: number
 }
 
-const STORE_DOMAIN     = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN     ?? ''
-const STOREFRONT_TOKEN = process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN ?? ''
+/** Variant + product fields for store UI (from Storefront `node` query). */
+export interface ProductVariantDisplay {
+  imageUrl:       string | null
+  imageAlt:       string
+  productTitle:   string
+  formattedPrice: string
+  /** Plain-ish description; may be empty. */
+  description:    string | null
+}
+
+const STORE_DOMAIN     = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN     ?? 'fbr-shop-3.myshopify.com'
+const STOREFRONT_TOKEN = process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN ?? 'a1cc1357e5cb963a863f3432c67d8f7d'
 const API_VERSION      = '2024-10'
 
 // ── Internal helpers ──────────────────────────────────────────────────────────
@@ -110,48 +120,79 @@ export async function createCart(merchandiseId: string, quantity: number): Promi
 }
 
 /**
- * Add lines to an existing cart.
- * Returns null if the cart has expired or is invalid — caller should create a new one.
+ * Load variant image, price, and product copy for the embedded store panel.
+ * Uses the same Storefront token as checkout — safe to call from the browser.
  */
-export async function addCartLines(
-  cartId: string,
+export async function getProductVariantForDisplay(
   merchandiseId: string,
-  quantity: number,
-): Promise<Cart | null> {
-  const data = await shopifyFetch<{ cartLinesAdd: { cart: unknown | null } }>(`
-    mutation cartLinesAdd($cartId: ID!, $lines: [CartLineInput!]!) {
-      cartLinesAdd(cartId: $cartId, lines: $lines) {
-        cart { ${CART_FIELDS} }
+): Promise<ProductVariantDisplay | null> {
+  if (!merchandiseId) return null
+  type NodeResp = {
+    node: {
+      title: string
+      price: { amount: string; currencyCode: string }
+      image: { url: string; altText: string | null } | null
+      product: {
+        title: string
+        description: string
+        descriptionHtml: string
+        featuredImage: { url: string; altText: string | null } | null
       }
-    }
-  `, { cartId, lines: [{ merchandiseId, quantity }] })
-  if (!data.cartLinesAdd.cart) return null
-  return parseCart(data.cartLinesAdd.cart)
-}
-
-/** Remove a single line from a cart by its line ID. */
-export async function removeCartLine(cartId: string, lineId: string): Promise<Cart> {
-  const data = await shopifyFetch<{ cartLinesRemove: { cart: unknown } }>(`
-    mutation cartLinesRemove($cartId: ID!, $lineIds: [ID!]!) {
-      cartLinesRemove(cartId: $cartId, lineIds: $lineIds) {
-        cart { ${CART_FIELDS} }
-      }
-    }
-  `, { cartId, lineIds: [lineId] })
-  return parseCart(data.cartLinesRemove.cart)
-}
-
-/** Fetch a cart by ID. Returns null if the cart has expired or does not exist. */
-export async function getCart(cartId: string): Promise<Cart | null> {
+    } | null
+  }
   try {
-    const data = await shopifyFetch<{ cart: unknown | null }>(`
-      query getCart($cartId: ID!) {
-        cart(id: $cartId) { ${CART_FIELDS} }
+    const data = await shopifyFetch<NodeResp>(
+      `
+      query productVariantForStore($id: ID!) {
+        node(id: $id) {
+          ... on ProductVariant {
+            title
+            price {
+              amount
+              currencyCode
+            }
+            image {
+              url(transform: { maxWidth: 960 })
+              altText
+            }
+            product {
+              title
+              description
+              descriptionHtml
+              featuredImage {
+                url(transform: { maxWidth: 960 })
+                altText
+              }
+            }
+          }
+        }
       }
-    `, { cartId })
-    if (!data.cart) return null
-    return parseCart(data.cart)
-  } catch {
+    `,
+      { id: merchandiseId },
+    )
+    const n = data.node
+    if (!n?.price) return null
+
+    const imageUrl = n.image?.url ?? n.product.featuredImage?.url ?? null
+    const imageAlt =
+      n.image?.altText ?? n.product.featuredImage?.altText ?? n.product.title
+
+    const plain = n.product.description?.trim() ?? ''
+    const html = n.product.descriptionHtml?.trim() ?? ''
+    const desc =
+      plain ||
+      (html ? html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() : '') ||
+      null
+
+    return {
+      imageUrl,
+      imageAlt,
+      productTitle: n.product.title,
+      formattedPrice: formatMoney(n.price.amount, n.price.currencyCode),
+      description: desc,
+    }
+  } catch (err) {
+    console.warn('[shopify] getProductVariantForDisplay failed:', err)
     return null
   }
 }

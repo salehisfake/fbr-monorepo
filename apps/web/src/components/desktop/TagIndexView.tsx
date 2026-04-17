@@ -16,7 +16,7 @@ interface PostIndexRow {
 }
 
 export default function TagIndexView({ tagSlug }: { tagSlug: string }) {
-  const openBeside = useLayoutStore((s) => s.openBeside)
+  const openPost = useLayoutStore((s) => s.openPost)
   const [rows, setRows] = useState<PostIndexRow[] | null>(null)
   const [loadError, setLoadError] = useState(false)
 
@@ -51,9 +51,9 @@ export default function TagIndexView({ tagSlug }: { tagSlug: string }) {
   const onRowClick = useCallback(
     (e: React.MouseEvent, slug: string) => {
       e.stopPropagation()
-      openBeside(slug)
+      openPost(slug)
     },
-    [openBeside],
+    [openPost],
   )
 
   const label = formatTagDisplay(tagSlug)
@@ -108,12 +108,6 @@ export default function TagIndexView({ tagSlug }: { tagSlug: string }) {
               </li>
             ))}
           </ul>
-        )}
-
-        {!loadError && matching.length > 0 && (
-          <p className={`${styles.hint} ${textStyles.capsMetaText}`}>
-            <kbd className={styles.kbd}>click</kbd> opens in a new window.
-          </p>
         )}
       </div>
     </div>

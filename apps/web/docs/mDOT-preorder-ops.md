@@ -12,10 +12,8 @@ This doc covers everything needed to keep the mDOT preorder system running after
 ## How the system works
 
 ```
-User clicks "Add to cart" in post
-  → Store flyout opens (menubar bag icon)
-  → User clicks "Purchase"
-  → Shopify Storefront API creates cart + returns checkoutUrl
+User clicks "Purchase" on the embedded store block in the post
+  → Shopify Storefront API creates a one-line cart + returns checkoutUrl
   → Browser redirects to Shopify Checkout
   → Customer pays
   → Shopify fires orders/paid webhook to /api/shopify/webhooks/orders
@@ -122,7 +120,7 @@ After a successful test, check the Shopify order (id `9876543210` in the test) a
 
 ## Local dev tunnel
 
-The store flyout and checkout flow work without a tunnel — they call Shopify directly from the browser.
+The embedded store and checkout flow work without a tunnel — they call Shopify directly from the browser.
 
 The tunnel is only needed so **Shopify can reach your webhook** during dev testing.
 
@@ -145,9 +143,9 @@ Tunnel URL changes on every restart. When it does:
 
 | Symptom | Likely cause | Fix |
 |---------|-------------|-----|
-| Cart flyout shows "Coming soon" | `NEXT_PUBLIC_SHOPIFY_MDOT_VARIANT_GID` not set | Add to env, restart dev |
-| Add to cart fails silently | Wrong/missing Storefront token or domain | Check `NEXT_PUBLIC_*` vars |
-| Checkout button missing / broken | Cart not created (Storefront API error) | Check browser console for fetch errors |
+| Store shows "Coming soon" | `NEXT_PUBLIC_SHOPIFY_MDOT_VARIANT_GID` not set | Add to env, restart dev |
+| Purchase fails silently | Wrong/missing Storefront token or domain | Check `NEXT_PUBLIC_*` vars |
+| Checkout does not open | `cartCreate` failed (Storefront API error) | Check browser console for fetch errors |
 | Webhook 401 | `SHOPIFY_WEBHOOK_SECRET` mismatch | Must match Shopify's signing secret exactly; restart after changing |
 | Webhook 500 Metafield failed | Admin token expired, wrong scopes, or metafield definition deleted | Regenerate token or recreate metafield definition |
 | Email missing key | Email sent before metafield written | Order confirmation fires before webhook completes; either accept the delay (key appears on order page) or use a fulfillment-triggered email instead |
@@ -175,10 +173,9 @@ If you rotate the **webhook signing secret**:
 
 | File | What it does |
 |------|-------------|
-| `apps/web/src/lib/shopify.ts` | Storefront GraphQL client (cart, checkout) |
-| `apps/web/src/components/desktop/StoreFlyout.tsx` | Flyout UI — product card + cart + Purchase |
-| `apps/web/src/components/store/PreorderCTA.tsx` | "Add to cart" button embedded in posts |
-| `apps/web/src/components/desktop/useCartStore.ts` | Zustand cart state (persisted to localStorage) |
+| `apps/web/src/lib/shopify.ts` | Storefront GraphQL client (`createCart` checkout, variant display query) |
+| `apps/web/src/components/store/EmbeddedStore.tsx` | MDX store block — product card + Purchase → checkout |
+| `apps/web/src/components/store/StorePanel.tsx` | Product + Purchase (one-shot cart, no on-site cart UI) |
 | `apps/web/src/app/api/shopify/webhooks/orders/route.ts` | `orders/paid` webhook handler |
 | `apps/web/src/content/posts/mdot.mdx` | mDOT post content |
 | `apps/web/scripts/test-shopify-webhook.ps1` | Webhook test script |

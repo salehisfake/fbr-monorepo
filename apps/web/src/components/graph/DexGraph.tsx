@@ -145,11 +145,6 @@ export default function DexGraph({ enableWindowOffset = true }: DexGraphProps) {
       const touchesFocus = !!(focusSlug && (sid === focusSlug || tid === focusSlug))
       const touchesHover = !!(hoverId && (sid === hoverId || tid === hoverId))
 
-      line
-        .classed('graph-link-focus', false)
-        .classed('graph-link-focus--to-target', false)
-        .classed('graph-link-focus--to-source', false)
-
       if (touchesHover) {
         line
           .attr('stroke', COLORS.MID)
@@ -161,17 +156,12 @@ export default function DexGraph({ enableWindowOffset = true }: DexGraphProps) {
       }
 
       if (touchesFocus) {
-        const towardTarget = tid === focusSlug
-        const towardSource = sid === focusSlug && tid !== focusSlug
         line
-          .classed('graph-link-focus', true)
-          .classed('graph-link-focus--to-target', towardTarget || sid === tid)
-          .classed('graph-link-focus--to-source', towardSource)
-        line
-          .attr('stroke', null)
-          .attr('stroke-dasharray', null)
-          .attr('stroke-width', null)
-          .style('animation', null)
+          .attr('stroke', COLORS.MIDLIGHT)
+          .attr('stroke-width', 0.55)
+          .attr('stroke-dasharray', 'none')
+          .attr('stroke-opacity', 0.88)
+          .style('animation', 'none')
         return
       }
 
@@ -326,8 +316,8 @@ export default function DexGraph({ enableWindowOffset = true }: DexGraphProps) {
 
     svg.append('style').text(`
       @keyframes orb-ripple {
-        0%   { transform: scale(1);   opacity: 0.22; }
-        60%  { opacity: 0.10; }
+        0%   { transform: scale(1);   opacity: 0.99; }
+        60%  { opacity: 0.88; }
         100% { transform: scale(2.8); opacity: 0;    }
       }
       .orb-ring {
@@ -337,22 +327,6 @@ export default function DexGraph({ enableWindowOffset = true }: DexGraphProps) {
       }
       .orb-ring-2 { animation-delay: 1.27s; }
       .orb-ring-3 { animation-delay: 2.53s; }
-      @keyframes graph-link-focus-flow {
-        0%   { stroke-dashoffset: 0; }
-        100% { stroke-dashoffset: 6; }
-      }
-      line.graph-link-focus {
-        stroke: ${COLORS.MIDLIGHT};
-        stroke-opacity: 0.88;
-        stroke-width: 0.55;
-        stroke-dasharray: 1 1;
-      }
-      line.graph-link-focus--to-target {
-        animation: graph-link-focus-flow 1.2s linear infinite reverse;
-      }
-      line.graph-link-focus--to-source {
-        animation: graph-link-focus-flow 1.2s linear infinite;
-      }
     `)
 
     const root = svg.append('g')
@@ -366,7 +340,7 @@ export default function DexGraph({ enableWindowOffset = true }: DexGraphProps) {
         .attr('width', 10).attr('height', 10)
         .attr('rx', 0)
         .attr('fill', 'none')
-        .attr('stroke', COLORS.MID)
+        .attr('stroke', COLORS.WHITE)
         .attr('stroke-width', 0.6)
         .attr('class', i === 1 ? 'orb-ring' : `orb-ring orb-ring-${i}`)
     })

@@ -10,13 +10,15 @@ import type { Post, PostFrontmatter } from '../types'
 import { fileURLToPath } from 'url'
 
 export interface PostData {
-  slug:        string
-  title:       string
-  description: string
-  pubDate:     string
-  tags:        string[]
-  contentHtml: string
-  mdxSource:   MDXRemoteSerializeResult
+  slug:         string
+  title:        string
+  description:  string
+  pubDate:      string
+  tags:         string[]
+  /** Slugs of linked posts (frontmatter `connections`). */
+  connections:  string[]
+  contentHtml:  string
+  mdxSource:    MDXRemoteSerializeResult
 }
 
 const __filename = fileURLToPath(import.meta.url)
@@ -92,6 +94,7 @@ export const getRenderedPost = cache(async (slug: string): Promise<PostData> => 
     description: post.frontmatter.description,
     pubDate:     post.frontmatter.pubDate,
     tags:        post.frontmatter.tags,
+    connections: post.frontmatter.connections ?? [],
     contentHtml,
     mdxSource,
   }

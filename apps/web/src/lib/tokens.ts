@@ -42,7 +42,7 @@ export const COLORS = {
   WHITE:    PALETTE['fbr-white'],
 
   // Semantic aliases (used across graph + UI)
-  BLACK:    PALETTE['fbr-zinc-700'],
+  BLACK:    PALETTE['fbr-zinc-800'],
   MID:      PALETTE['fbr-zinc-500'],
   MIDLIGHT: PALETTE['fbr-zinc-400'],
   LIGHT:    PALETTE['fbr-zinc-300'],
@@ -145,7 +145,7 @@ export const BREAKPOINTS = {
 export const LAYOUT = {
   MENUBAR_HEIGHT: 36,
   /** Inset around the desktop window strip (px). */
-  WINDOW_GAP:     12,
+  WINDOW_GAP:     4,
   /** Padding inside each mobile window carousel page (px). */
   WINDOW_GAP_MOBILE: 0,
   /**
